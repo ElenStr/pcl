@@ -1,0 +1,31 @@
+
+IDS(numberOfRings,type:integer)
+HEADER(hanoi,unknown
+	,PARAM(source,auxiliary,target,type:array( char ),mode :ref)
+	,PARAM(rings,type:integer,mode :val))
+HEADER(move,unknown
+	,PARAM(source,target,type:array( char ),mode :ref))
+BLOCK(
+	Call(writeString,str(Move from ),)
+	Call(writeString,Var(source),)
+	Call(writeString,str( to ),)
+	Call(writeString,Var(target),)
+	Call(writeString,str(.\n),) )
+BLOCK(
+	If( >=(Var(rings),int(1)),
+BLOCK(
+	Call(hanoi,Var(source),Var(auxiliary),Var(target),-(Var(rings),int(1)),)
+	Call(move,Var(source),Var(target),)
+	Call(hanoi,Var(auxiliary),Var(target),Var(source),-(Var(rings),int(1)),) ) ) )
+BLOCK(
+	Call(writeString,str(Please, give the number of rings : ),)
+	Assign(Var(numberOfRings),Call(readInteger,))
+	Call(writeString,str(\nHere is the solution :\n\n),)
+	Call(hanoi,str(left),str(right),str(middle),Var(numberOfRings),) )
+scope: 14ret[-3], target[2], source[1]
+scope: move(reference source : char []; reference target : char []) : <undefined>, rings[4], target[3], auxiliary[2], source[1]
+scope: hanoi(reference source : char []; reference auxiliary : char []; reference target : char []; rings : int) : <undefined>, numberOfRings[-1]
+----------------------------------------
+scope: 14ret[-5], move(reference source : char []; reference target : char []) : <undefined>, rings[4], target[3], auxiliary[2], source[1]
+scope: hanoi(reference source : char []; reference auxiliary : char []; reference target : char []; rings : int) : <undefined>, numberOfRings[-1]
+----------------------------------------

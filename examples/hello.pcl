@@ -1,0 +1,42 @@
+program p;
+
+var c : ^array of char;
+var s : array [32] of char;
+var n : ^array of array [2] of integer;
+    sum           : real;
+var i, p : integer;
+label l1;
+
+procedure a(var i : integer);
+begin
+
+    i :=i +1
+    
+end;
+
+begin 
+new [3] n;
+new [4] c;
+s[0] := 'p';
+n^[1][1] :=  2;
+p := 4;
+i := 1 + p;
+a(i);
+writeInteger(i);
+writeString("\n"); 
+writeInteger(n^[1][1]);
+
+
+c := @"asd \0";
+writeString("Hello ");
+writeString(c^);
+c^[0] := '\n';
+writeChar(c^[4]); 
+writeString(c^);
+writeChar('\n'); 
+
+if false then ; 
+begin
+ writeChar('a');
+end
+end.
