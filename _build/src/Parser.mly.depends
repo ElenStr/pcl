@@ -1,2 +1,0 @@
-src/Parser.ml: Ast Lexing Symbol Types
-src/Parser.mli: Ast Lexing

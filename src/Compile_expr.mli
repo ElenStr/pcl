@@ -15,7 +15,7 @@ val frame_pointer : Llvm.llvalue Stack.t
 val the_fpm : [ `Module ] Llvm.PassManager.t
 
 
-
+val cast_to_compatible:Llvm.llvalue -> Llvm.llvalue -> Llvm.llvalue
 
 val fix_offset  : Symbol.entry_info -> int -> unit
   

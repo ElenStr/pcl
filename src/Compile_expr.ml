@@ -25,13 +25,13 @@ let llvm_int n = const_int (i32_type context) n
 
 let fix_offset inf i =
   match inf with 
-    ENTRY_parameter p_inf -> p_inf.parameter_offset <- i+1 
+  ENTRY_parameter p_inf -> p_inf.parameter_offset <- i+1 
   |ENTRY_variable v_inf ->()
   | _  -> ()
-
-let rec llvm_type t = 
-  match t with
-  | TYPE_int -> i16_type context
+  
+  let rec llvm_type t = 
+    match t with
+    | TYPE_int -> i16_type context
   | TYPE_real -> x86fp80_type context
   | TYPE_bool -> i1_type context
   | TYPE_char -> i8_type context
@@ -40,9 +40,22 @@ let rec llvm_type t =
   (* struct_type context [| ( i32_type context);  (llvm_type dt) |] *)
   | TYPE_ptr dt -> pointer_type (llvm_type dt)
   | TYPE_none -> void_type context
+  
+let cast_to_compatible rv lv_ptr=
+  let rval_type = type_of rv in  
+  let lval_type =  element_type (type_of lv_ptr) in
+    if ((llvm_type (TYPE_ptr( TYPE_none)))==rval_type) then
+    build_bitcast rv lval_type "cast nil" builder
+    else
+    begin
+      if ((rval_type==(llvm_type TYPE_int)) && 
+      (lval_type ==(llvm_type TYPE_real))) then
+      build_sitofp rv (llvm_type TYPE_real) "cast int to real" builder
+      else rv
+    end
 
-
-
+  
+  
 
 let str_to_char s = 
   let s = if s.[0]== '\'' then s else "\'"^s^"\'" in

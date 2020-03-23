@@ -215,8 +215,9 @@ let compile_assign lv e lv_pos =
   let lv_ptr = get_val_ptr lv lv_pos in
   
   let rval = compile_expr e in
-  let rval =  if ((llvm_type (TYPE_ptr(TYPE_none)))==(type_of rval)) then
-   build_bitcast rval (element_type (type_of lv_ptr)) "cast nil" Compile_expr.builder else rval in 
+   
+  let rval = cast_to_compatible rval lv_ptr in 
+   
   ignore(build_store rval lv_ptr Compile_expr.builder)
 
 let compile_new_el lv t pos= 
