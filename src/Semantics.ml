@@ -172,18 +172,14 @@ and sem_stmt stmt =
       | _ -> (error "%a %s is not a label" print_position (position_point pos) id)
     end
   | S_return -> sem_stmt (S_goto("4ret",Lexing.dummy_pos)) 
-  | S_call call -> 
-    begin 
-      match  (sem_expr call)  with 
-      | TYPE_none -> ignore(Compile_expr.compile_expr call)
-      | _ ->  (error "Invalid function call"; raise Exit) 
-    end                
+  | S_call call -> ignore(Compile_expr.compile_expr call)
+                    
   | S_new_el (lv,pos) ->
     begin
       match sem_lvalue lv pos with
       | TYPE_ptr t when is_complete t -> 
         begin
-          ignore(newVariable  (id_make ("2"^(lvalue_to_string lv))) t LL_dummy true pos);
+          ignore(newVariable  (id_make ("2"^(lvalue_to_string lv))) t LL_dummy false pos);
           compile_new_el lv t pos 
         end
       | _ -> error "%a Expression %s must be of type pointer \
@@ -197,7 +193,7 @@ and sem_stmt stmt =
       | (TYPE_ptr TYPE_array(t,None), TYPE_int) when dim>0 ->
         begin 
           ignore(newVariable  (id_make ("3"^(lvalue_to_string (Deref(Lval (e,pos))))) ) 
-                 (TYPE_array(t,Some(dim))) LL_dummy true pos);
+                 (TYPE_array(t,Some(dim))) LL_dummy false pos);
           compile_new_array n e t pos
         end
 

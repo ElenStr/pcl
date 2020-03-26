@@ -30,6 +30,8 @@ let rec pcl_type_str t =
 let rec equalType t1 t2 =
   match t1, t2 with
   | TYPE_array (et1, None), TYPE_array (et2, None) -> equalType et1 et2
+  | TYPE_ptr TYPE_none, TYPE_ptr _ -> true
+  | TYPE_ptr _, TYPE_ptr TYPE_none -> true
   | TYPE_ptr dt1, TYPE_ptr dt2 -> equalType  dt1 dt2
   | TYPE_array (et1, Some(n1)), TYPE_array (et2, Some(n2)) -> (n1==n2) && (equalType et1 et2)
   | _-> t1 = t2 

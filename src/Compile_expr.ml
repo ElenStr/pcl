@@ -129,10 +129,13 @@ let rec compile_unop unop e =
 
 and compile_eq_op op e1 e2 =
   let lv1, lv2 = compile_expr e2, compile_expr e1 in
+    
   begin
     match classify_type (type_of lv1) with
     | TypeKind.Void -> 
       begin
+        (* let casted_nil = build_bitcast lv1 (type_of lv2) "cast nil" builder in  *)
+
         match op with O_eq -> const_int (llvm_type TYPE_bool) 1
                     | _ -> const_int (llvm_type TYPE_bool) 0
       end
@@ -144,9 +147,10 @@ and compile_eq_op op e1 e2 =
       end
     | _ -> 
       begin
+        let v1 = build_bitcast lv1 (type_of lv2) "cast nil" builder in 
         match op with
-        | O_eq -> build_icmp Icmp.Eq lv1 lv2 "ieqtmp" builder
-        | O_neq -> build_icmp Icmp.Ne lv1 lv2 "ineqtmp" builder
+        | O_eq -> build_icmp Icmp.Eq v1 lv2 "ieqtmp" builder
+        | O_neq -> build_icmp Icmp.Ne v1 lv2 "ineqtmp" builder
       end
   end
 
@@ -312,10 +316,11 @@ and compile_expr e =
           let act_type = actual |> type_of in
           let rec cast_params_to_real act_type form_type actual = 
             match (act_type |> classify_type, form_type |> classify_type) with
+            (* | (TypeKind.Void, _ ) -> const_null form_type *)
             | (TypeKind.Integer, TypeKind.X86fp80) -> cast_to_real actual
             | (TypeKind.Pointer, _) ->
-            build_bitcast actual 
-            ((type_of (cast_params_to_real  (element_type act_type) (element_type form_type) actual)) )
+            build_bitcast actual form_type
+            (* ((type_of (cast_params_to_real  (element_type act_type) (element_type form_type) actual)) ) *)
              "cast_to_real_params" builder
             | _ -> actual in
             cast_params_to_real act_type form_type actual) (Llvm.params fn) in
