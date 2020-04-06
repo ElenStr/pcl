@@ -16,23 +16,23 @@ let print_intermediate src file opt =
     try
     let decl, stmt = Parser.program Lexer.lexer lexbuf in
   
-      (* print (decl, stmt) ; Printf.printf "\n"; *)
-  
+    
     let the_module = sem (decl, stmt) opt  in
     Printf.printf "%s" (string_of_llmodule the_module)
   with Parser.Error->
     let position = lexbuf.Lexing.lex_curr_p in 
     error "Synatx error: %a" print_position (position_point position) ;
     exit 1
-
+    
 let print_final src file opt = 
   let cin  = if file=""  then stdin else open_in src in
   let lexbuf = Lexing.from_channel cin in
-    try
-    let decl, stmt = Parser.program Lexer.lexer lexbuf in
+  try
+  let decl, stmt = Parser.program Lexer.lexer lexbuf in
   
-      (* print (decl, stmt) ; Printf.printf "\n"; *)
-    let the_module = sem (decl, stmt) opt  in 
+ 
+  (* print (decl, stmt) ; Printf.printf "\n"; *)
+  let the_module = sem (decl, stmt) opt  in 
     Llvm_all_backends.initialize();
     let target_m = TargetMachine.create (Target.default_triple ()) (Target.by_triple (Target.default_triple ())) in
     Llvm.set_target_triple (TargetMachine.triple target_m) the_module;

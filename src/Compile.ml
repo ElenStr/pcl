@@ -256,7 +256,7 @@ let compile_new_array n lv t pos =
     |(false, true) ->  (error "%a c Array Dimension must be \
                                positive" print_position (position_point pos); raise Exit)
     | _ -> 
-    build_array_malloc (llvm_type t) lv_ptr "new_array_unknown_bounds" Compile_expr.builder 
+    build_array_malloc (llvm_type t) dim "new_array_unknown_bounds" Compile_expr.builder 
 
   in
   (* ignore(build_store (const_null (llvm_type t)) new_el_ptr Compile_expr.builder); *)

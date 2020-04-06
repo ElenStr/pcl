@@ -101,7 +101,7 @@ let rec sem_decl ast f fd =
      compile_ret hd previous_block ;
     
      (* printSymbolTable();   *)
-    checkSymbolTable();
+    (* checkSymbolTable(); *)
     closeScope() 
   |_ -> ()
 

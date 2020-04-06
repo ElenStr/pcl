@@ -316,11 +316,9 @@ and compile_expr e =
           let act_type = actual |> type_of in
           let rec cast_params_to_real act_type form_type actual = 
             match (act_type |> classify_type, form_type |> classify_type) with
-            (* | (TypeKind.Void, _ ) -> const_null form_type *)
             | (TypeKind.Integer, TypeKind.X86fp80) -> cast_to_real actual
             | (TypeKind.Pointer, _) ->
             build_bitcast actual form_type
-            (* ((type_of (cast_params_to_real  (element_type act_type) (element_type form_type) actual)) ) *)
              "cast_to_real_params" builder
             | _ -> actual in
             cast_params_to_real act_type form_type actual) (Llvm.params fn) in
@@ -328,7 +326,6 @@ and compile_expr e =
             ENTRY_function inf -> inf.function_result
           | _ -> (error "unreached call expr";raise Exit) in
         let nm = if (equalType ret_t TYPE_none) then "" else "calltmp" in
-        (* dump_module the_module; *)
         build_call fn  casted_pars nm builder 
       |None  -> raise Exit (*already checked from semanctics*)
     end

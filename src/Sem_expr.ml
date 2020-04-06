@@ -30,12 +30,12 @@ let rec  sem_lvalue lv pos =
   | Array_element (l,e) -> 
     begin
       match ((sem_lvalue l pos),( sem_expr e)) with
-      | (TYPE_array(t,Some(n)),TYPE_int) when check_bounds n e -> t
+      | (TYPE_array(t,Some(n)),TYPE_int) (*when check_bounds n e*) -> t
 
-      | (TYPE_array(t,None),TYPE_int) (*when check_dynamic l e pos*) -> t
+      | (TYPE_array(t,_),TYPE_int) (*when check_dynamic l e pos*) -> t
 
-      | (TYPE_array(t,_),TYPE_int)  ->(error "%a Index out \
-                                              of bound" print_position (position_point pos); t)
+      (* | (TYPE_array(t,_),TYPE_int)  ->(error "%a Index out \ *)
+                                              (* of bound" print_position (position_point pos); t) *)
 
       | _ -> (error "%a Invalid array \
                      expression " print_position (position_point pos); raise Exit)
