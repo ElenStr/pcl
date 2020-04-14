@@ -237,7 +237,7 @@ let newParameter id typ mode f llv err pos =
                     error "Parameter name mismatch in redeclaration \
                            of function %a" pretty_id f.entry_id
                   else
-                    H.add !tab id p; Printf.printf "\nYUhu\n";
+                    H.add !tab id p;
                   p
               | _ ->
                   internal "I found a parameter that is not a parameter!";

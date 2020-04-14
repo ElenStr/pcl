@@ -30,7 +30,6 @@ let print_final src file opt =
   try
   let decl, stmt = Parser.program Lexer.lexer lexbuf in
   
- 
   (* print (decl, stmt) ; Printf.printf "\n"; *)
   let the_module = sem (decl, stmt) opt  in 
     Llvm_all_backends.initialize();

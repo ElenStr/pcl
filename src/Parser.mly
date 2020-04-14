@@ -64,13 +64,7 @@
 
 %start program
 %type <Ast.ast_decl list * Ast.ast_stmt > program
-/* %type <ast_decl list> local_list, params, formal_list
-%type <ast_stmt list> block
-%type <ast_decl> header, local,  formal
-%type <typ> pcl_type */
-/* %type <ast_stmt list> stmt_list
-%type <ast_stmt> stmt
-%type <ast_expr> expr  */
+
 
 %%
 

@@ -13,7 +13,7 @@ let lib = [
   D_header("writeBoolean",TYPE_none,[D_param(["b"],TYPE_bool,PASS_BY_VALUE,Lexing.dummy_pos)],Lexing.dummy_pos);
   D_header("writeChar",TYPE_none,[D_param(["c"],TYPE_char,PASS_BY_VALUE,Lexing.dummy_pos)],Lexing.dummy_pos);
   D_header("writeReal",TYPE_none,[D_param(["r"],TYPE_real,PASS_BY_VALUE,Lexing.dummy_pos)],Lexing.dummy_pos);
-  D_header("writeString",TYPE_none,[D_param(["s"],TYPE_array (TYPE_char, None),PASS_BY_REFERENCE,Lexing.dummy_pos)],Lexing.dummy_pos);
+  D_header("writeString",TYPE_none,[D_param(["s"],(TYPE_array (TYPE_char, None)),PASS_BY_REFERENCE,Lexing.dummy_pos)],Lexing.dummy_pos);
   D_header("readInteger",TYPE_int,[],Lexing.dummy_pos);
   D_header("readBoolean",TYPE_bool,[],Lexing.dummy_pos);
   D_header("readChar",TYPE_char,[],Lexing.dummy_pos);

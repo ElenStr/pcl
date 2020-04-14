@@ -11,7 +11,7 @@ open Scope
 open Str
 open Llvm
 open Llvm_analysis
-
+open Sem_expr
 let context = global_context ()
 let the_module = create_module context "mycompiler"
 let the_fpm = PassManager.create () 
@@ -300,8 +300,8 @@ and compile_expr e =
               
               let param_pass p = 
                 
-                match (p |> compile_expr|> type_of |> classify_type) with
-              | TypeKind.Array -> cast_to_iarray p
+                match (sem_expr p ) with
+              | (TYPE_array(_)) -> cast_to_iarray p
               
               | _ when fun_sc>0 ->  get_ptr p
               | _ -> p |> compile_expr 

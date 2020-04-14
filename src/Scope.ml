@@ -11,8 +11,7 @@ open Symbol
 
 open Llvm
 
-(* let frame_pointers = ref [||]
-let frame_pointers_names = ref [||] *)
+
 
 let par_sizes = Stack.create ()
 
@@ -62,49 +61,11 @@ let scope_var_types_to_array sc_op =
   | _ -> (error "unreached top_level types "; raise Exit)
 
 
-(* let add_new_frame id sc_op context builder = 
-  let var_types,sco_nest = scope_var_types_to_array sc_op in
-  let frame_type = struct_type context var_types in
-  let frame = build_alloca frame_type ("scope"^id) builder in
 
-   frame_pointers :=  Array.append !frame_pointers  [| frame|];
-   frame_pointers_names :=  Array.append !frame_pointers_names  [| "scope"^id|];
-   !frame_pointers *)
-
-(* let scope_types env_arr = 
-  Array.map (fun el -> type_of el ) env_arr *)
-
-
-(* let remove_frame () = 
-  let size = (Array.length !frame_pointers) - 1 in
-  frame_pointers := Array.sub !frame_pointers 0 size *)
-
-(* let get_env inf = 
-  match inf with
-  ENTRY_function i -> i.function_environment
-  | _ -> error "unreached set_enc";raise Exit
-
-let set_env inf builder =
-  let pars  = builder |> insertion_block |>  block_parent |> params in
-  match inf with
-  ENTRY_function i -> 
-    
-  let par_size = 
-    if Stack.is_empty par_sizes then 0 else Stack.top par_sizes in
-  let frames = Array.sub pars  par_size ((Array.length pars) -  par_size ) in 
-  let env = Array.append frames [|(!frame_pointers).(Array.length (!frame_pointers) -1) |] in
-ignore (i.function_environment <- env)
-  | _ -> error "unreached set_enc";raise Exit *)
 
   let nest sc_op  = 
     match sc_op with
      Some sc -> sc.sco_nesting
      | _ -> 0
 
-  (* let lib_names = 
-    let get_names_from_hd hd = 
-      match hd with
-       | (D_header(id,_,_,_)) -> id
-       | _ -> "" 
-    in 
-    List.map get_names_from_hd Semantics.lib *)
+ 

@@ -9,7 +9,7 @@
 let digit  = ['0'-'9']
 let letter = ['a'-'z' 'A'-'Z']
 let name   = letter+(letter | digit | '_')*
-let real   = (((digit#'0')digit*)|'0')('.'digit+)(['E' 'e']['+' '_']?digit+)?
+let real   = (((digit#'0')digit*)|'0')('.'digit+)(['E' 'e']['+' '-']?digit+)?
 let char   = ([^ '\\' '\'' '\"' ] | ('\\' [ 'n' 't' 'r' '0' '\\' '\'' '\"']))
 let white  = [' ' '\t' '\r']
 

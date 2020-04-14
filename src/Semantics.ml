@@ -172,7 +172,7 @@ and sem_stmt stmt =
       | _ -> (error "%a %s is not a label" print_position (position_point pos) id)
     end
   | S_return -> sem_stmt (S_goto("4ret",Lexing.dummy_pos)) 
-  | S_call call -> ignore(Compile_expr.compile_expr call)
+  | S_call call -> ignore(sem_expr call) ;ignore(Compile_expr.compile_expr call)
                     
   | S_new_el (lv,pos) ->
     begin
@@ -244,7 +244,7 @@ and sem (decls,stmt) o =
   compile_main_ret ();
   (* Llvm.dump_module the_module; *)
   Llvm_analysis.assert_valid_module the_module; 
-  let _ = Llvm.PassManager.run_module the_module the_fpm in
+  let _ = Llvm.PassManager.run_module the_module Compile_expr.the_fpm in
   (* printSymbolTable ();  *)
   checkSymbolTable();
   closeScope();

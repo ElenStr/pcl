@@ -74,17 +74,3 @@ let find_function_scope hd locals =
   
   (Array.append pars_and_res var_types),(Array.length pars)
 
-
-
-
-  (* let new_fp_ptr_idx_ptr = build_struct_g
-  ep !frame_pointer 0 "st_link_offset" Compile_expr.builder in *)
-  (* let new_fp_ptr_idx = build_load new_fp_ptr_idx_ptr "stlink_offs" Compile.builder in *)
-  (* error "%s" (Llvm.string_of_lltype (type_of new_fp_ptr_idx)); raise Exit; *)
-  (* let new_fp_ptr = build_struct_gep !frame_pointer (Array.length (struct_element_types (type_of !frame_pointer))-1) "stlinkptr" Compile.builder in *)
-  (* let str_type = element_type (type_of new_fp_ptr) in
-  if struct_element_types str_type <> [||] then begin *)
-  (* let new_fp = build_load new_fp_ptr "stlinkld" Compile.builder in *)
-  
-  (* frame_pointer := new_fp *)
-  (* end else () *)

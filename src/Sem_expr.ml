@@ -134,9 +134,10 @@ and sem_expr e =
   | E_call (id, params,pos) -> 
     begin 
       let fn = (lookupEntry (id_make id) LOOKUP_ALL_SCOPES true pos).entry_info in
+    
       match fn with 
-      | ENTRY_function fun_inf when (check_params fun_inf.function_paramlist params pos) -> fun_inf.function_result
-      | _ -> (error "%a %s is not a function" print_position (position_point pos) id; raise Exit)
+      | ENTRY_function fun_inf when (check_params fun_inf.function_paramlist params pos)-> fun_inf.function_result
+      | _ -> (error "%a %s is not a function " print_position (position_point pos) id; raise Exit)
     end
 
     and check_bounds n e =

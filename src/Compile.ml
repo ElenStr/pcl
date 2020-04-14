@@ -287,12 +287,12 @@ let compile_return () =
 
 let compile_main o = 
   let _ = if o then begin
-    add_constant_propagation the_fpm;
-    add_memory_to_register_promotion the_fpm;
-    add_instruction_combination the_fpm;
-    add_reassociation the_fpm;
-    add_gvn the_fpm;
-    add_cfg_simplification the_fpm;
+    add_constant_propagation Compile_expr.the_fpm;
+    add_memory_to_register_promotion Compile_expr.the_fpm;
+    add_instruction_combination Compile_expr.the_fpm;
+    add_reassociation Compile_expr.the_fpm;
+    add_gvn Compile_expr.the_fpm;
+    add_cfg_simplification Compile_expr.the_fpm;
 
   end else () in
   let fun_type = function_type (llvm_type TYPE_none) [| |] in
