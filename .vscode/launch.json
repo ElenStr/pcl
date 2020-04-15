@@ -11,7 +11,7 @@
             "program": "${workspaceRoot}/Main.d.byte",
             "console": "internalConsole",
             "stopOnEntry": true,
-            "arguments": ["${workspaceRoot}/examples/bubble_sort.pcl"]
+            "arguments": ["${workspaceRoot}/examples/test_decl.pcl"]
         }
     ]
 }

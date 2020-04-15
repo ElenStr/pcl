@@ -29,13 +29,16 @@ let rec  sem_lvalue lv pos =
   | String_const str -> TYPE_array(TYPE_char,Some(((String.length str)+1)))
   | Array_element (l,e) -> 
     begin
+      let check_bounds n e =
+        match e with
+        | Const INT ne -> (ne>=0)&&(ne<n)
+        | _ -> true in
       match ((sem_lvalue l pos),( sem_expr e)) with
-      | (TYPE_array(t,Some(n)),TYPE_int) (*when check_bounds n e*) -> t
+      | (TYPE_array(t,Some(n)),TYPE_int) when check_bounds n e -> t
+      | (TYPE_array(t,Some(n)),TYPE_int) -> (error "%a Index out \
+      of bound" print_position (position_point pos); raise Exit)
 
-      | (TYPE_array(t,_),TYPE_int) (*when check_dynamic l e pos*) -> t
-
-      (* | (TYPE_array(t,_),TYPE_int)  ->(error "%a Index out \ *)
-                                              (* of bound" print_position (position_point pos); t) *)
+      | (TYPE_array(t,_),TYPE_int) -> t
 
       | _ -> (error "%a Invalid array \
                      expression " print_position (position_point pos); raise Exit)
@@ -139,11 +142,8 @@ and sem_expr e =
       | ENTRY_function fun_inf when (check_params fun_inf.function_paramlist params pos)-> fun_inf.function_result
       | _ -> (error "%a %s is not a function " print_position (position_point pos) id; raise Exit)
     end
-
-    and check_bounds n e =
-    match e with
-    | Const INT ne -> (ne>=0)&&(ne<n)
-    | _ -> true
+    
+    
   
   
   and check_params formal actual pos = 

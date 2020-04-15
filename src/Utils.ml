@@ -185,56 +185,56 @@ let  ret_block_of_hd hd =
 
 
 
-      let checkSymbolTable () = 
-        let rec walk scp =
-          if scp.sco_nesting <> 0 then
-            begin             
-              let entry e =
-                match e.entry_info with
-               
-                 
-                | ENTRY_variable inf ->
-                  let id_str = id_name e.entry_id in
-                  if id_str.[0]='1' then 
-                   match e.entry_val with 
-                   LL(_) -> (error "Undefined label \
-                    %s" (String.sub id_str 1 ((String.length id_str)-1));
-                   raise Exit)
-                   | _ -> () else ()             
-                    
-                
-      
-                | ENTRY_function inf ->
-                  if inf.function_isForward && not (List.exists (fun hd -> begin 
-                        match hd with (D_header(id, _ , _, _)) -> (e.entry_id=(id_make id))
-                                    | _ -> false
-                      end) lib) then 
-                    (error "Undefined function: %a" pretty_id e.entry_id;
-                     raise Exit)
-                  else   () 
-                                        
-                | _ -> ()
-                  
-              in
-              let rec entries  es =
-                match es with
-                | [e] ->
-                  entry e
-                | e :: es ->
-                   entry e ;entries es;
-                | [] ->
-                  () in
-              match scp.sco_parent with
-              | Some scpar ->
-                
-                  entries scp.sco_entries;
-                  walk scpar
-              | None ->
-                ()
-            end in
-        let scope scp =
-          if scp.sco_nesting == 0 then
-            ()
-          else
-            walk scp in
-             scope !currentScope
+let checkSymbolTable () = 
+  let rec walk scp =
+    if scp.sco_nesting <> 0 then
+      begin             
+        let entry e =
+          match e.entry_info with
+          
+            
+          | ENTRY_variable inf ->
+            let id_str = id_name e.entry_id in
+            if id_str.[0]='1' then 
+              match e.entry_val with 
+              LL(_) -> (error "Undefined label \
+              %s" (String.sub id_str 1 ((String.length id_str)-1));
+              raise Exit)
+              | _ -> () else ()             
+              
+          
+
+          | ENTRY_function inf ->
+            if inf.function_isForward && not (List.exists (fun hd -> begin 
+                  match hd with (D_header(id, _ , _, _)) -> (e.entry_id=(id_make id))
+                              | _ -> false
+                end) lib) then 
+              (error "Undefined function: %a" pretty_id e.entry_id;
+                raise Exit)
+            else   () 
+                                  
+          | _ -> ()
+            
+        in
+        let rec entries  es =
+          match es with
+          | [e] ->
+            entry e
+          | e :: es ->
+              entry e ;entries es;
+          | [] ->
+            () in
+        match scp.sco_parent with
+        | Some scpar ->
+          
+            entries scp.sco_entries;
+            walk scpar
+        | None ->
+          ()
+      end in
+  let scope scp =
+    if scp.sco_nesting == 0 then
+      ()
+    else
+      walk scp in
+        scope !currentScope

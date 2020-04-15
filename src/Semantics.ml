@@ -17,11 +17,6 @@ open Sem_expr
 exception Invalid
 
 
-
-
-
-
-
 let rec sem_decl ast f fd =
   match (ast,f,fd)with
   | (D_var (ids, t, pos), None, true )->
@@ -92,21 +87,17 @@ let rec sem_decl ast f fd =
      (* printSymbolTable();  *)
     
     (* Llvm.dump_module the_module; *)
-     sem_stmt bd;
+    sem_stmt bd;
      (* delete_frame ();  *)
     ignore(Stack.pop frame_pointer);
-     sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos)); 
-     
+    sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));     
 
-     compile_ret hd previous_block ;
+    compile_ret hd previous_block ;
     
      (* printSymbolTable();   *)
     (* checkSymbolTable(); *)
     closeScope() 
   |_ -> ()
-
-and eval_expr n = 
-  match n  with Const INT(i) -> i | _ -> 1
 
 and sem_stmt stmt = 
   match stmt with
@@ -188,6 +179,8 @@ and sem_stmt stmt =
 
   | S_new_array (n, e, pos) -> 
     begin
+      let eval_expr n = 
+        match n  with Const INT(i) -> i | _ -> 1 in
       let dim = eval_expr n in
       match (sem_lvalue e pos, sem_expr n) with
       | (TYPE_ptr TYPE_array(t,None), TYPE_int) when dim>0 ->
@@ -231,7 +224,9 @@ and sem_stmt stmt =
 and sem (decls,stmt) o = 
   initSymbolTable 256;
   compile_main o;
+  
   List.iter (fun l -> sem_decl l None true) lib;
+  
   Stack.push  (Llvm.const_pointer_null (Llvm.struct_type context [||] )) frame_pointer;
   new_frame ((find_all_vars decls [||]),0);
   
@@ -239,8 +234,10 @@ and sem (decls,stmt) o =
   
   List.iter (fun l -> sem_decl l None true)  decls ; 
   sem_decl ( D_label(["4ret"],Lexing.dummy_pos)) None true;
+
   sem_stmt  stmt ; 
   sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));
+
   compile_main_ret ();
   (* Llvm.dump_module the_module; *)
   Llvm_analysis.assert_valid_module the_module; 
