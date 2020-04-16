@@ -224,13 +224,13 @@ let checkSymbolTable () =
               entry e ;entries es;
           | [] ->
             () in
-        match scp.sco_parent with
-        | Some scpar ->
+        (* match scp.sco_parent with
+        | Some scpar -> *)
           
             entries scp.sco_entries;
-            walk scpar
+            (* walk scpar
         | None ->
-          ()
+          () *)
       end in
   let scope scp =
     if scp.sco_nesting == 0 then

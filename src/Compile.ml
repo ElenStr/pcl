@@ -159,7 +159,7 @@ let bb_of_llb b id pos from_label =
   match b with
     LLB(llb) -> llb
   | LL(ll) -> 
-    let entr = lookupEntry (id_make ("1"^id)) LOOKUP_CURRENT_SCOPE true pos in
+    let entr = lookupEntry (id_make id) LOOKUP_CURRENT_SCOPE true pos in
     let bb = block_of_value ll in 
     let _=  if from_label then entr.entry_val <- LLB(bb) in
     bb
@@ -167,7 +167,7 @@ let bb_of_llb b id pos from_label =
     begin 
       let start_bb = insertion_block Compile_expr.builder in
       let the_function = block_parent start_bb in
-      let entr = lookupEntry (id_make ("1"^id)) LOOKUP_CURRENT_SCOPE true pos in
+      let entr = lookupEntry (id_make id) LOOKUP_CURRENT_SCOPE true pos in
       let new_bb = append_block context id the_function in
       entr.entry_val <- LL(new_bb |> value_of_block);
       new_bb

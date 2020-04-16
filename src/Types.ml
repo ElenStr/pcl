@@ -7,7 +7,7 @@ type typ = TYPE_none
              typ * int option
          | TYPE_ptr of typ
 
-
+(* virtual space, real one is defined via LLVM *)
 let rec sizeOfType t =
   match t with
   | TYPE_int  -> 1

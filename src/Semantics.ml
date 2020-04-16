@@ -26,7 +26,7 @@ let rec sem_decl ast f fd =
       else error "%a Invalid variable type" print_position (position_point pos)
     end
 
-  | (D_label (ids,pos), None, true )-> ignore (List.map (fun id -> (newVariable (id_make ("1"^id)) TYPE_none LL_dummy true pos )) ids ) 
+  | (D_label (ids,pos), None, true )-> ignore (List.map (fun id -> (newVariable (id_make id) TYPE_none LL_dummy true pos )) ids ) 
   | (D_param (ids , t , m, pos),Some(f),_) -> 
     begin
       match (t, m)  with 
@@ -95,7 +95,7 @@ let rec sem_decl ast f fd =
     compile_ret hd previous_block ;
     
      (* printSymbolTable();   *)
-    (* checkSymbolTable(); *)
+    checkSymbolTable();
     closeScope() 
   |_ -> ()
 
@@ -143,7 +143,7 @@ and sem_stmt stmt =
   | S_label (id, s,pos) -> 
     begin 
       
-      let entr = lookupEntry (id_make ("1"^id)) LOOKUP_CURRENT_SCOPE true pos in
+      let entr = lookupEntry (id_make id) LOOKUP_CURRENT_SCOPE true pos in
       match entr.entry_info with
       |ENTRY_variable _ -> 
         begin
@@ -157,7 +157,7 @@ and sem_stmt stmt =
   | S_goto (id,pos) ->
     begin 
      
-      let entr = lookupEntry (id_make ("1"^id)) LOOKUP_CURRENT_SCOPE true pos in
+      let entr = lookupEntry (id_make id) LOOKUP_CURRENT_SCOPE true pos in
       match entr.entry_info with
       |ENTRY_variable _ -> compile_goto entr.entry_val id pos
       | _ -> (error "%a %s is not a label" print_position (position_point pos) id)
