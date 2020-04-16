@@ -176,7 +176,8 @@ let lookupEntry id how err pos =
     lookup ()
 
 let newVariable id typ llv err pos =
-  !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
+  if typ<>TYPE_none then 
+   !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
   let inf = {
     variable_type = typ;
     variable_offset = !currentScope.sco_negofs
