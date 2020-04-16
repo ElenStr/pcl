@@ -17,7 +17,7 @@ let the_module = create_module context "mycompiler"
 let the_fpm = PassManager.create () 
 let builder = builder context
 
-let frame_pointer = Stack.create ()
+let frame_pointers = Stack.create ()
 
 
 let llvm_int n = const_int (i32_type context) n 
@@ -287,7 +287,7 @@ and compile_expr e =
           | _ -> find_scope (cur_sc - 1) (get_previous_frame_ptr cur_fp_ptr)
         in 
         let scope_arg  = 
-          let scope = find_scope cur_s (Stack.top frame_pointer) in
+          let scope = find_scope cur_s (Stack.top frame_pointers) in
           if (Array.length (struct_element_types (type_of scope)))>0 then 
             [| scope |] else [||] in
         (* if (Array.length pars)>0 then [|pars.((Array.length pars)-1 )|] 
@@ -340,7 +340,7 @@ and get_val_ptr lv pos =
       (* if  entr_sc=current_s  then
           llval entry.entry_val
          else *)
-      let current_frame_ptr = if Stack.is_empty frame_pointer then raise Exit else   Stack.top frame_pointer in
+      let current_frame_ptr = if Stack.is_empty frame_pointers then raise Exit else   Stack.top frame_pointers in
       let get_previous_frame_ptr  cur_fp =
         let struct_size = (cur_fp |> type_of|> element_type |> struct_element_types |> Array.length )- 1 in
 
@@ -387,7 +387,7 @@ and get_val_ptr lv pos =
       lv_ptr
       (* build_load lv_ptr_ptr (id^"_ptr_ptr") builder  *)
     end
-  |Res -> llval (lookupEntry (id_make "result") LOOKUP_ALL_SCOPES true pos).entry_val 
+  |Res ->get_val_ptr (Var("result")) pos(*llval (lookupEntry (id_make "result") LOOKUP_ALL_SCOPES true pos).entry_val*) 
   |String_const str -> cast_string_to_array_ptr str 
 
 and compile_lvalue lv pos =

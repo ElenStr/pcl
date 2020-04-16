@@ -11,7 +11,7 @@ val builder : Llvm.llbuilder
 val context : Llvm.llcontext
 val the_module : Llvm.llmodule
 
-val frame_pointer : Llvm.llvalue Stack.t
+val frame_pointers : Llvm.llvalue Stack.t
 val the_fpm : [ `Module ] Llvm.PassManager.t
 
 

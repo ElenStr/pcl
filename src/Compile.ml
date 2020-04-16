@@ -78,10 +78,10 @@ let compile_proto id t params =
       let par_sz  = Array.length pars in
 
       let the_pars = Array.append pars 
-          (if Stack.is_empty frame_pointer then [||]
-           else  [|type_of (Stack.top frame_pointer)|]) in 
+          (if Stack.is_empty frame_pointers then [||]
+           else  [|type_of (Stack.top frame_pointers)|]) in 
       let par_names = Array.append (Array.concat params_names) 
-          (if Stack.is_empty frame_pointer then [||]
+          (if Stack.is_empty frame_pointers then [||]
            else [|"pscope"|]) in
 
       let fun_type = function_type (llvm_type t) the_pars in
@@ -97,7 +97,7 @@ let compile_proto id t params =
               | PASS_BY_VALUE when !currentScope.sco_nesting>1-> add_function_attr fn (attr_of_repr context (AttrRepr.Enum(enum_attr_kind "byval" ,Int64.of_int 0))) (AttrIndex.Param(i))
               | _ -> ()
             in
-            fix_offset par_entry.entry_info i;
+            (* fix_offset par_entry.entry_info i; no use prob *)
 
             par_entry.entry_val <- LL(p);
           end
@@ -133,15 +133,15 @@ let compile_ret hd prev =
         |TYPE_none -> ignore(build_ret_void Compile_expr.builder)
         | _ -> 
           begin
-            let ret_val_ptr = llval (lookupEntry (id_make "result") LOOKUP_CURRENT_SCOPE true pos).entry_val in
-            let ret_val = build_load ret_val_ptr "result_load" Compile_expr.builder in
+            let ret_val = compile_lvalue Res pos in(*llval (lookupEntry (id_make "result") LOOKUP_CURRENT_SCOPE true pos).entry_val in*)
+            (* let ret_val = build_load ret_val_ptr "result_load" Compile_expr.builder in *)
             ignore(build_ret ret_val Compile_expr.builder);
 
 
           end in 
       
       position_at_end prev Compile_expr.builder;
-      ignore(if Stack.is_empty frame_pointer then (error "pars";raise Exit) else Stack.pop par_sizes );
+      ignore(if Stack.is_empty frame_pointers then (error "pars";raise Exit) else Stack.pop par_sizes );
 
     end;
   | _ -> raise Exit (*unreachable*)

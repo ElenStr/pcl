@@ -13,6 +13,7 @@ type prompt_t = Final | Intermidiate | From_file
 let print_intermediate src file opt = 
   let cin  = if file=""  then stdin else open_in src in
   let lexbuf = Lexing.from_channel cin in
+    lexbuf.lex_curr_p <- {lexbuf.lex_curr_p with pos_fname = src};
     try
     let decl, stmt = Parser.program Lexer.lexer lexbuf in
   
@@ -27,6 +28,7 @@ let print_intermediate src file opt =
 let print_final src file opt = 
   let cin  = if file=""  then stdin else open_in src in
   let lexbuf = Lexing.from_channel cin in
+  lexbuf.lex_curr_p <- {lexbuf.lex_curr_p with pos_fname = src};
   try
   let decl, stmt = Parser.program Lexer.lexer lexbuf in
   

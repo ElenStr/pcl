@@ -34,7 +34,7 @@ let rec find_all_vars decls types =
 
 let new_frame (var_types,par_sz )= 
  
-  let types = Array.append var_types [| type_of (Stack.top frame_pointer)|] in
+  let types = Array.append var_types [| type_of (Stack.top frame_pointers)|] in
   let struct_t = struct_type context types in
   let len  = (Array.length types) in
   let frame = if !currentScope.sco_nesting=0 then
@@ -44,8 +44,8 @@ let new_frame (var_types,par_sz )=
   end
    else build_alloca struct_t "scope" Compile_expr.builder in
   let fn = Compile_expr.builder |> insertion_block |> block_parent in 
-  Array.iteri (fun i p ->
-  if ((i<par_sz)||(i=len-1)) then begin
+  Array.iteri (fun i p -> 
+  if ((i<par_sz)||(i=len-1)) then begin (*i=len-1 mysterious corner case*)
   let pptr = build_struct_gep frame i "bind_param_ptr" Compile_expr.builder in
   ignore(build_store p pptr Compile_expr.builder)
   end)
@@ -56,7 +56,7 @@ let new_frame (var_types,par_sz )=
   in
   
 
-  Stack.push frame frame_pointer
+  Stack.push frame frame_pointers
 
 let find_function_scope hd locals =
   let var_types = find_all_vars locals [||] in
@@ -69,7 +69,7 @@ let find_function_scope hd locals =
     ) parms )), t)
   | _ -> (error "unreached find_function_scope";raise Exit)
   in
-  let res = if ft=TYPE_none then [||] else [|(llvm_type ft)|] in
+  let res = if ft=TYPE_none then [||] else [|(llvm_type ft)|] in 
   let pars_and_res = Array.append pars res in
   
   (Array.append pars_and_res var_types),(Array.length pars)

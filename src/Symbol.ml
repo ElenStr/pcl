@@ -209,13 +209,16 @@ let newFunction id llv err pos =
     newEntry id (ENTRY_function inf) llv false pos
 
 let newParameter id typ mode f llv err pos =
+  (* Very important  when status PARDEF_CHECK syncs offset *)
+  (* when status PARDEF_DEFINE sets right offset *)
+  !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
   match f.entry_info with
   | ENTRY_function inf -> begin
       match inf.function_pstatus with
       | PARDEF_DEFINE ->
           let inf_p = {
             parameter_type = typ;
-            parameter_offset = 0;
+            parameter_offset =  !currentScope.sco_negofs ;
             parameter_mode = mode
           } in
           let e = newEntry id (ENTRY_parameter inf_p) llv err pos in
@@ -285,7 +288,7 @@ let endFunctionHeader e typ =
             inf.function_result <- typ;
            
             (* let offset = ref start_positive_offset in*)
-            let fix_offset e =
+            (* let fix_offset e =
               match e.entry_info with
               | ENTRY_parameter inf ->
               !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
@@ -298,7 +301,7 @@ let endFunctionHeader e typ =
                   offset := !offset + size *)
               | _ ->
                   internal "Cannot fix offset to a non parameter" in
-            List.iter fix_offset inf.function_paramlist;
+            List.iter fix_offset inf.function_paramlist; *)
             inf.function_paramlist <- List.rev inf.function_paramlist 
         | PARDEF_CHECK ->
             if inf.function_redeflist <> [] then

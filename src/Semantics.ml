@@ -89,12 +89,12 @@ let rec sem_decl ast f fd =
     (* Llvm.dump_module the_module; *)
     sem_stmt bd;
      (* delete_frame ();  *)
-    ignore(Stack.pop frame_pointer);
-    sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));     
-
-    compile_ret hd previous_block ;
+     sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));     
+     
+     compile_ret hd previous_block ;
+     ignore(Stack.pop frame_pointers);
     
-     (* printSymbolTable();   *)
+    (* printSymbolTable();   *)
     checkSymbolTable();
     closeScope() 
   |_ -> ()
@@ -163,7 +163,7 @@ and sem_stmt stmt =
       | _ -> (error "%a %s is not a label" print_position (position_point pos) id)
     end
   | S_return -> sem_stmt (S_goto("4ret",Lexing.dummy_pos)) 
-  | S_call call -> ignore(sem_expr call) ;ignore(Compile_expr.compile_expr call)
+  | S_call call -> ignore(sem_expr call) ;ignore(compile_expr call)
                     
   | S_new_el (lv,pos) ->
     begin
@@ -227,7 +227,7 @@ and sem (decls,stmt) o =
   
   List.iter (fun l -> sem_decl l None true) lib;
   
-  Stack.push  (Llvm.const_pointer_null (Llvm.struct_type context [||] )) frame_pointer;
+  Stack.push  (Llvm.const_pointer_null (Llvm.struct_type context [||] )) frame_pointers;
   new_frame ((find_all_vars decls [||]),0);
   
   openScope ();
