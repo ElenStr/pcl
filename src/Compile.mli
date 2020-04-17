@@ -18,6 +18,6 @@ val compile_main_ret : unit -> unit
 
 val llvm_int : int -> Llvm.llvalue
 
-val create_ret_block : unit -> Symbol.llvm_val
+(* val create_ret_block : unit -> Symbol.llvm_val *)
 val compile_return : unit -> unit
 val get_main : unit -> Llvm.llvalue

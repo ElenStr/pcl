@@ -65,7 +65,7 @@ let rec sem_decl ast f fd =
             compile_header fn.entry_val params;
 
             if t <> TYPE_none then 
-            ignore(newVariable (id_make "result") t (LL(compile_var_decl "result" t)) true Lexing.dummy_pos);
+            ignore(newVariable (id_make "result") t LL_dummy true Lexing.dummy_pos);
 
 
             

@@ -9,7 +9,7 @@ open Utils
 open Identifier
 open Types
 open Symbol
-open Scope
+(* open Scope *)
 open Str
 open Llvm
 open Llvm_analysis
@@ -107,23 +107,26 @@ let compile_proto id t params =
     end
 
 let compile_header fn params= 
+  let llval v = match v with 
+  | LL lv -> lv
+  |_ -> raise Exit in
   let fn = (llval fn) in
   let bb = append_block context "entry" fn  in
 
-  position_at_end bb Compile_expr.builder;
-  let sz = Array.length (Array.concat  (List.map (fun param -> 
+  position_at_end bb Compile_expr.builder
+  (* let sz = Array.length (Array.concat  (List.map (fun param -> 
       let ids, t = param_ids param , param_type param in 
      Array.make (List.length ids) t
-    ) params )) in Stack.push sz par_sizes
+    ) params )) in Stack.push sz par_sizes *)
 
-let create_ret_block () = 
+(* let create_ret_block () = 
 
     let start_bb = insertion_block Compile_expr.builder in
     let the_function = block_parent start_bb in
     let new_bb = append_block context "ret" the_function in
     position_at_end start_bb Compile_expr.builder;
    LLB(new_bb)
-  
+   *)
 
 let compile_ret hd prev = 
   match hd with
@@ -141,7 +144,7 @@ let compile_ret hd prev =
           end in 
       
       position_at_end prev Compile_expr.builder;
-      ignore(if Stack.is_empty frame_pointers then (error "pars";raise Exit) else Stack.pop par_sizes );
+      (* ignore(if Stack.is_empty frame_pointers then (error "pars";raise Exit) else Stack.pop par_sizes ); *)
 
     end;
   | _ -> raise Exit (*unreachable*)

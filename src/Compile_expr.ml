@@ -7,7 +7,7 @@ open Error
 open Identifier
 open Types
 open Symbol
-open Scope
+(* open Scope *)
 open Str
 open Llvm
 open Llvm_analysis
@@ -18,17 +18,18 @@ let the_fpm = PassManager.create ()
 let builder = builder context
 
 let frame_pointers = Stack.create ()
+(* let par_sizes = Stackeate () *)
 
 
 let llvm_int n = const_int (i32_type context) n 
 
 
-let fix_offset inf i =
+(* let fix_offset inf i =
   match inf with 
   ENTRY_parameter p_inf -> p_inf.parameter_offset <- i+1 
   |ENTRY_variable v_inf ->()
   | _  -> ()
-  
+   *)
   let rec llvm_type t = 
     match t with
     | TYPE_int -> i16_type context

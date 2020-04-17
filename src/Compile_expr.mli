@@ -12,12 +12,14 @@ val context : Llvm.llcontext
 val the_module : Llvm.llmodule
 
 val frame_pointers : Llvm.llvalue Stack.t
+(* val par_sizes : int Stack.t *)
+
 val the_fpm : [ `Module ] Llvm.PassManager.t
 
 
 val cast_to_compatible:Llvm.llvalue -> Llvm.llvalue -> Llvm.llvalue
 
-val fix_offset  : Symbol.entry_info -> int -> unit
+(* val fix_offset  : Symbol.entry_info -> int -> unit *)
   
 
 val  llvm_type  : Types.typ -> Llvm.lltype
