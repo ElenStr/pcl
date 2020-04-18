@@ -17,9 +17,9 @@ open Llvm_executionengine
 open Llvm_target
 open Llvm_scalar_opts
 
-let llvm_int n = const_int (i32_type context) n  
+(* let llvm_int n = const_int (i32_type context) n   *)
   
-let compile_var_decl id t =
+(* let compile_var_decl id t =
   let rec init_val var_ptr t =
 
     match t with  
@@ -44,7 +44,7 @@ let compile_var_decl id t =
   let builder = builder_at context (instr_begin (entry_block the_function)) in
   let var_ptr = build_alloca (llvm_type t) id builder in
     
-  init_val var_ptr t; var_ptr
+  init_val var_ptr t; var_ptr *)
 
 
 let compile_proto id t params =
@@ -277,7 +277,7 @@ let compile_dispose_array lv pos =
       ignore(build_free llv Compile_expr.builder);
       ignore(build_store (const_null (element_type (type_of llv) )) llv Compile_expr.builder)
     end
-let compile_return () = 
+(* let compile_return () = 
   let current_bb = insertion_block Compile_expr.builder in
   let the_function = block_parent current_bb in
   
@@ -285,7 +285,7 @@ let compile_return () =
   let new_block = append_block context "return" the_function in
   position_at_end current_bb Compile_expr.builder;
   ignore(build_br ret_block Compile_expr.builder);
-  position_at_end new_block Compile_expr.builder
+  position_at_end new_block Compile_expr.builder *)
 
 
 let compile_main o = 
@@ -309,6 +309,6 @@ let compile_main_ret () =
 
 
 
-let get_main () = 
+(* let get_main () = 
   let current_bb = insertion_block Compile_expr.builder in
-  block_parent current_bb
+  block_parent current_bb *)
