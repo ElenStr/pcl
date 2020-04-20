@@ -61,9 +61,24 @@ let cast_to_compatible rv lv_ptr=
 let str_to_char s = 
   let s = if s.[0]== '\'' then s else "\'"^s^"\'" in
 match  s with  "\'\\0\'" -> '\000' | "\'\\n\'" -> '\n'
-| "\'\\r\'" -> '\r' | "\'\\t\'" -> '\t' | "\'\\\\\\'" -> '\\' | "\'\\\'\'" -> '\''
+| "\'\\r\'" -> '\r' | "\'\\t\'" -> '\t' | "\'\\\\\'" -> '\\' | "\'\\\'\'" -> '\''
 | "\'\\\"\'" -> '\"' | " " -> ' '
 | _ -> (Str.global_replace (Str.regexp "\'") "" s).[0]
+
+let fix_string str_const = 
+  let escaped = [| "\\n"; "\\t"; "\\r"; "\\0"; "\\\'"; "\\\""|] in 
+  let fixed = [| "\n"; "\t"; "\r"; "\000"; "\'"; "\""|] in
+  let str_tmp = ref str_const in 
+  Array.iteri (
+    fun i e ->  
+    str_tmp := Str.global_replace (Str.regexp_string e) fixed.(i) !str_tmp 
+    ) escaped ;
+  !str_tmp
+
+let char_of_str s = 
+  let unquoted_char = String.sub s 1 ((String.length s) - 2 ) in
+  if unquoted_char="\\\\" then error "%s\n" unquoted_char;
+  (fix_string unquoted_char).[0]
 let int_of_bool b = if b then 1 else 0
 
 let cast_to_real lv = 
@@ -87,16 +102,20 @@ let cast_and_build op l1 l2 =
 let cast_string_to_array_ptr str_const = 
   let rec flatten str_c out_str = 
     let new_char = str_to_char (String.sub str_c 0 2) in 
-    let new_out = String. make 1 new_char in
+    let new_out = String.make 1 new_char in
     let out = out_str^new_out in
     let len = (String.length str_c) in
-    let next_first,new_len  = if new_char=str_c.[0] then (1,len-1 )else (2,len-2) in
+    let next_first,new_len  = 
+      if new_char=str_c.[0] && new_char!='\\'then (1,len-1 )
+      else (2,len-2) in
     let new_len  = if len=3&&next_first=2 then 1 else new_len in
-    if str_c.[next_first] = '\000'&& new_len=1 then out^"\000"
+    (* trailing \000 unnecessary  *)
+    if str_c.[next_first] = '\000'&& new_len=1 then out
     else flatten (String.sub str_c next_first new_len) out
   in
   let str  = flatten (str_const^"\000") "" in 
-  
+ 
+  (* let str = fix_string str_const in *)
   
 
   let var_ptr = build_alloca (llvm_type (TYPE_array(TYPE_char, Some((String.length str )+ 1)))) str builder in
