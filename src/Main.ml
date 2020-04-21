@@ -35,9 +35,10 @@ let print_final src file opt =
   (* print (decl, stmt) ; Printf.printf "\n"; *)
   let the_module = sem (decl, stmt) opt  in 
     Llvm_all_backends.initialize();
-    let target_m = TargetMachine.create (Target.default_triple ()) (Target.by_triple (Target.default_triple ())) in
+    let level = if opt then CodeGenOptLevel.Aggressive else CodeGenOptLevel.None in  
+    let target_m = TargetMachine.create ~triple:(Target.default_triple ()) ~level (Target.by_triple (Target.default_triple ())) in
     Llvm.set_target_triple (TargetMachine.triple target_m) the_module;
-
+    
     let _ = if file="" then 
      let code = TargetMachine.emit_to_memory_buffer the_module CodeGenFileType.AssemblyFile target_m in
       Printf.printf "%s" (MemoryBuffer.as_string code)

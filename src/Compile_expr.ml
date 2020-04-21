@@ -73,7 +73,7 @@ match  s with  "\'\\0\'" -> '\000' | "\'\\n\'" -> '\n'
 | "\'\\\"\'" -> '\"' | " " -> ' '
 | _ -> (Str.global_replace (Str.regexp "\'") "" s).[0]
 
-let fix_string str_const = 
+(* let fix_string str_const = 
   let escaped = [| "\\n"; "\\t"; "\\r"; "\\0"; "\\\'"; "\\\""|] in 
   let fixed = [| "\n"; "\t"; "\r"; "\000"; "\'"; "\""|] in
   let str_tmp = ref str_const in 
@@ -86,7 +86,7 @@ let fix_string str_const =
 let char_of_str s = 
   let unquoted_char = String.sub s 1 ((String.length s) - 2 ) in
   if unquoted_char="\\\\" then error "%s\n" unquoted_char;
-  (fix_string unquoted_char).[0]
+  (fix_string unquoted_char).[0] *)
 let int_of_bool b = if b then 1 else 0
 
 let cast_to_real lv = 
@@ -129,7 +129,8 @@ let cast_string_to_array_ptr str_const =
   let var_ptr = build_alloca (llvm_type (TYPE_array(TYPE_char, Some((String.length str )+ 1)))) str builder in
   
   ignore(build_store (const_stringz context str) var_ptr builder);
-  build_bitcast var_ptr  (llvm_type (TYPE_ptr(TYPE_array(TYPE_char,None))) ) "str_cast" builder
+  (* build_bitcast var_ptr  (llvm_type (TYPE_ptr(TYPE_array(TYPE_char,None))) ) "str_cast" builder *)
+  var_ptr
 
 let compile_const c =
   let l_t = llvm_type (Sem_expr.sem_const c) in
@@ -160,13 +161,13 @@ and compile_eq_op op e1 e2 =
     
   begin
     match classify_type (type_of lv1) with
-    | TypeKind.Void -> 
+    (* | TypeKind.Void -> 
       begin
         (* let casted_nil = build_bitcast lv1 (type_of lv2) "cast nil" builder in  *)
-
+        error "Wrong\n" ; raise Exit;
         match op with O_eq -> const_int (llvm_type TYPE_bool) 1
                     | _ -> const_int (llvm_type TYPE_bool) 0
-      end
+      end *)
     | _ when classify_type(type_of lv1) <> classify_type(type_of lv2) -> 
       begin
         match op with
@@ -342,20 +343,21 @@ and compile_expr e =
           let actual = the_pars.(i) in
           let form_type = formal |> type_of  in
           let act_type = actual |> type_of in
-          let rec cast_params_to_real act_type form_type actual = 
+          let rec cast_params_to_compatible act_type form_type actual = 
             match (act_type |> classify_type, form_type |> classify_type) with
             | (TypeKind.Integer, TypeKind.X86fp80) -> cast_to_real actual
             | (TypeKind.Pointer, _) ->
             build_bitcast actual form_type
              "cast_to_real_params" builder
             | _ -> actual in
-            cast_params_to_real act_type form_type actual) (Llvm.params fn) in
+            cast_params_to_compatible act_type form_type actual) (Llvm.params fn) in
+            
         let ret_t = match fun_ent.entry_info with
             ENTRY_function inf -> inf.function_result
           | _ -> (error "unreached call expr";raise Exit) in
         let nm = if (equalType ret_t TYPE_none) then "" else "calltmp" in
         build_call fn  casted_pars nm builder 
-      |None  -> raise Exit (*already checked from semanctics*)
+      |None  -> raise Exit (*unreached already checked from semanctics*)
     end
 
 and get_val_ptr lv pos =
