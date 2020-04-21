@@ -215,11 +215,14 @@ let compile_while_end test cont =
   position_at_end cont Compile_expr.builder
 
 let compile_assign lv e lv_pos = 
+    (* TODO: iarray cast!!!! *)
+
   let lv_ptr = get_val_ptr lv lv_pos in
   
   let rval = compile_expr e in
    
-  let rval = cast_to_compatible rval lv_ptr in 
+  let rval = cast_to_compatible rval e lv_ptr lv lv_pos in 
+  (* let rval = cast_to_compatible rval lv_ptr  in  *)
    
   ignore(build_store rval lv_ptr Compile_expr.builder)
 

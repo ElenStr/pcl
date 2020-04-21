@@ -42,7 +42,7 @@ let llvm_int n = const_int (i32_type context) n
   | TYPE_ptr dt -> pointer_type (llvm_type dt)
   | TYPE_none -> void_type context
   
-let cast_to_compatible rv lv_ptr=
+(* let cast_to_compatible rv lv_ptr=
   let rval_type = type_of rv in  
   let lval_type =  element_type (type_of lv_ptr) in
     if ((llvm_type (TYPE_ptr( TYPE_none)))==rval_type) then
@@ -53,9 +53,17 @@ let cast_to_compatible rv lv_ptr=
       (lval_type ==(llvm_type TYPE_real))) then
       build_sitofp rv (llvm_type TYPE_real) "cast int to real" builder
       else rv
-    end
+    end *)
+    (* TODO: iarray cast!!!! *)
 
-  
+let cast_to_compatible rv rv_e lv_ptr lv_e pos = 
+  let lval_type =  element_type (type_of lv_ptr) in
+  match (sem_expr rv_e, sem_lvalue lv_e pos) with
+  |(TYPE_ptr(TYPE_none), _) -> build_bitcast rv lval_type "cast nil" builder
+  |(TYPE_int, TYPE_real) -> build_sitofp rv lval_type "cast int to real" builder
+  |(TYPE_ptr(TYPE_array(dt,Some(n))), TYPE_ptr(TYPE_array(_,_))) -> 
+  build_bitcast rv lval_type "arr_cast" builder
+  | _ -> rv
   
 
 let str_to_char s = 
