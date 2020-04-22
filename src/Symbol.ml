@@ -50,16 +50,16 @@ and parameter_info = {
   parameter_mode           : pass_mode
 }
 
-and temporary_info = {
+(* and temporary_info = {
   temporary_type   : Types.typ;
   temporary_offset : int
-}
+} *)
 
 and entry_info = ENTRY_none
                | ENTRY_variable of variable_info
                | ENTRY_function of function_info
                | ENTRY_parameter of parameter_info
-               | ENTRY_temporary of temporary_info
+               (* | ENTRY_temporary of temporary_info *)
 
 and entry = {
   entry_id    : Identifier.id;
@@ -260,7 +260,7 @@ let newParameter id typ mode f llv err pos =
       internal "Cannot add a parameter to a non-function";
       raise Exit
 
-let newTemporary typ llv pos=
+(* let newTemporary typ llv pos=
   let id = id_make ("$" ^ string_of_int !tempNumber) in
   !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
   let inf = {
@@ -268,7 +268,7 @@ let newTemporary typ llv pos=
     temporary_offset = !currentScope.sco_negofs
   } in
   incr tempNumber;
-  newEntry id (ENTRY_temporary inf) llv false pos
+  newEntry id (ENTRY_temporary inf) llv false pos *)
 
 let forwardFunction e =
   match e.entry_info with

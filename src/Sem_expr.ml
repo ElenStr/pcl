@@ -1,9 +1,7 @@
 open Printf
 open Ast
-
 open Format
 open Error
-open Utils
 open Identifier
 open Types
 open Symbol
@@ -31,7 +29,7 @@ let rec  sem_lvalue lv pos =
     begin
       let check_bounds n e =
         match e with
-        | Const INT ne -> (ne>=0)&&(ne<n)
+        | Const INT idx -> (idx>=0)&&(idx<n)
         | _ -> true in
       match ((sem_lvalue l pos),( sem_expr e)) with
       | (TYPE_array(t,Some(n)),TYPE_int) when check_bounds n e -> t
@@ -141,39 +139,35 @@ and sem_expr e =
       match fn with 
       | ENTRY_function fun_inf when (check_params fun_inf.function_paramlist params pos)-> fun_inf.function_result
       | _ -> (error "%a %s is not a function " print_position (position_point pos) id; raise Exit)
-    end
-    
-    
+    end 
   
-  
-  and check_params formal actual pos = 
-    try
-      List.iter2 
-        (fun f a -> 
-           match f.entry_info with
-           | ENTRY_parameter par_inf -> 
-             begin
-               match par_inf.parameter_mode with
-               |PASS_BY_VALUE when 
-                   not(is_assignement_compatible par_inf.parameter_type (sem_expr a)) -> 
-                 (error "%a Invalid parameter" print_position (position_point pos);raise Invalid)
-               |PASS_BY_REFERENCE -> 
-                 begin
-                   match a with 
-                   | Lval (lv,_) when 
-                       (is_assignement_compatible (TYPE_ptr(par_inf.parameter_type)) (TYPE_ptr(sem_expr a)))-> ()
-                   | Lval (_,p) ->  (error "%a Parameter must be \
-                                            l-value" print_position (position_point p);raise Invalid)
-                   | _ -> (error "%a actual parameter is not assignement compatible with \
-                                  formal parameter " print_position (position_point pos);raise Invalid)
-                 end
-               | _ -> () (*PASS_BY_VALUE when is_assignement compatible*)
-             end
-           | _ -> () (*unreachable *)
-        ) 
-        formal actual ; true
-  
-    with Invalid_argument _ -> (error "%a wrong number of \
-                                       parameters" print_position (position_point pos); false)
-       | Invalid -> false
-  
+and check_params formal actual pos = 
+  try
+    List.iter2 
+      (fun f a -> 
+          match f.entry_info with
+          | ENTRY_parameter par_inf -> 
+            begin
+              match par_inf.parameter_mode with
+              |PASS_BY_VALUE when 
+                  not(is_assignement_compatible par_inf.parameter_type (sem_expr a)) -> 
+                (error "%a Invalid parameter" print_position (position_point pos);raise Invalid)
+              |PASS_BY_REFERENCE -> 
+                begin
+                  match a with 
+                  | Lval (lv,_) when 
+                      (is_assignement_compatible (TYPE_ptr(par_inf.parameter_type)) (TYPE_ptr(sem_expr a)))-> ()
+                  | Lval (_,p) ->  (error "%a Parameter must be \
+                                          l-value" print_position (position_point p);raise Invalid)
+                  | _ -> (error "%a actual parameter is not assignement compatible with \
+                                formal parameter " print_position (position_point pos);raise Invalid)
+                end
+              | _ -> () (*PASS_BY_VALUE when is_assignement compatible*)
+            end
+          | _ -> () (*unreachable *)
+      ) 
+      formal actual ; true
+
+  with Invalid_argument _ -> (error "%a wrong number of \
+                                      parameters" print_position (position_point pos); false)
+      | Invalid -> false  

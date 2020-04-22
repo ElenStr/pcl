@@ -10,11 +10,11 @@ open Identifier
 open Types
 open Symbol
 (* open Scope *)
-open Str
+(* open Str *)
 open Llvm
-open Llvm_analysis
-open Llvm_executionengine
-open Llvm_target
+(* open Llvm_analysis *)
+(* open Llvm_executionengine *)
+(* open Llvm_target *)
 open Llvm_scalar_opts
 
 (* let llvm_int n = const_int (i32_type context) n   *)
@@ -91,15 +91,15 @@ let compile_proto id t params =
           let par_name = par_names.(i) in
           if i<par_sz then 
           begin
-            let par_entry = (lookupEntry (id_make par_name) LOOKUP_CURRENT_SCOPE true Lexing.dummy_pos) in
-            let _ = 
+            (* let par_entry = (lookupEntry (id_make par_name) LOOKUP_CURRENT_SCOPE true Lexing.dummy_pos) in *)
+            (* let _ =  *)
               match param_modes.(i) with
               | PASS_BY_VALUE when !currentScope.sco_nesting>1-> add_function_attr fn (attr_of_repr context (AttrRepr.Enum(enum_attr_kind "byval" ,Int64.of_int 0))) (AttrIndex.Param(i))
               | _ -> ()
-            in
+            (* in *)
             (* fix_offset par_entry.entry_info i; no use prob *)
 
-            par_entry.entry_val <- LL(p);
+            (* par_entry.entry_val <- LL(p); *)
           end
           else ();
           set_value_name par_name p ) (Llvm.params fn) );
@@ -215,7 +215,6 @@ let compile_while_end test cont =
   position_at_end cont Compile_expr.builder
 
 let compile_assign lv e lv_pos = 
-    (* TODO: iarray cast!!!! *)
 
   let lv_ptr = get_val_ptr lv lv_pos in
   

@@ -67,6 +67,4 @@ val logic_op_to_string : logic_op -> string
 val lvalue_to_string : l_value -> string
 val op_expr_to_string : op_expr ->string 
 val expr_to_string : ast_expr -> string
-
-(* val run : ast_stmt list -> unit *)
 val print : ast_decl list * ast_stmt -> unit

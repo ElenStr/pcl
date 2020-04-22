@@ -7,11 +7,13 @@ open Error
 open Identifier
 open Types
 open Symbol
+(* open Utils *)
 (* open Scope *)
-open Str
+(* open Str *)
 open Llvm
-open Llvm_analysis
+(* open Llvm_analysis *)
 open Sem_expr
+
 let context = global_context ()
 let the_module = create_module context "mycompiler"
 let the_fpm = PassManager.create () 
@@ -21,7 +23,6 @@ let frame_pointers = Stack.create ()
 (* let par_sizes = Stackeate () *)
 
 
-let llvm_int n = const_int (i32_type context) n 
 
 
 (* let fix_offset inf i =
@@ -33,14 +34,14 @@ let llvm_int n = const_int (i32_type context) n
   let rec llvm_type t = 
     match t with
     | TYPE_int -> i16_type context
-  | TYPE_real -> x86fp80_type context
-  | TYPE_bool -> i1_type context
-  | TYPE_char -> i8_type context
-  | TYPE_array (dt, Some(n) ) -> array_type (llvm_type dt) n 
-  | TYPE_array (dt,_) -> array_type (llvm_type dt) 0
-  (* struct_type context [| ( i32_type context);  (llvm_type dt) |] *)
-  | TYPE_ptr dt -> pointer_type (llvm_type dt)
-  | TYPE_none -> void_type context
+    | TYPE_real -> x86fp80_type context
+    | TYPE_bool -> i1_type context
+    | TYPE_char -> i8_type context
+    | TYPE_array (dt, Some(n) ) -> array_type (llvm_type dt) n 
+    | TYPE_array (dt,_) -> array_type (llvm_type dt) 0
+    (* struct_type context [| ( i32_type context);  (llvm_type dt) |] *)
+    | TYPE_ptr dt -> pointer_type (llvm_type dt)
+    | TYPE_none -> void_type context
   
 (* let cast_to_compatible rv lv_ptr=
   let rval_type = type_of rv in  
@@ -56,22 +57,23 @@ let llvm_int n = const_int (i32_type context) n
     end *)
     (* TODO: iarray cast!!!! *)
 
+(* maybe move to compile.ml *)
 let cast_to_compatible rv rv_e lv_ptr lv_e pos = 
   let lval_type =  element_type (type_of lv_ptr) in
   match (sem_expr rv_e, sem_lvalue lv_e pos) with
-  |(TYPE_ptr(TYPE_none), _) -> build_bitcast rv lval_type "cast nil" builder
-  |(TYPE_int, TYPE_real) -> build_sitofp rv lval_type "cast int to real" builder
-  |(TYPE_ptr(TYPE_array(dt,Some(n))), TYPE_ptr(TYPE_array(_,_))) -> 
-  build_bitcast rv lval_type "arr_cast" builder
-  | _ -> rv
+    |(TYPE_ptr(TYPE_none), _) -> build_bitcast rv lval_type "cast nil" builder
+    |(TYPE_int, TYPE_real) -> build_sitofp rv lval_type "cast int to real" builder
+    |(TYPE_ptr(TYPE_array(dt,Some(n))), TYPE_ptr(TYPE_array(_,_))) -> 
+      build_bitcast rv lval_type "arr_cast" builder
+    | _ -> rv
   
 
-let str_to_char s = 
+(* let str_to_char s = 
   let s = if s.[0]== '\'' then s else "\'"^s^"\'" in
 match  s with  "\'\\0\'" -> '\000' | "\'\\n\'" -> '\n'
 | "\'\\r\'" -> '\r' | "\'\\t\'" -> '\t' | "\'\\\\\'" -> '\\' | "\'\\\'\'" -> '\''
 | "\'\\\"\'" -> '\"' | " " -> ' '
-| _ -> (Str.global_replace (Str.regexp "\'") "" s).[0]
+| _ -> (Str.global_replace (Str.regexp "\'") "" s).[0] *)
 
 (* let fix_string str_const = 
   let escaped = [| "\\n"; "\\t"; "\\r"; "\\0"; "\\\'"; "\\\""|] in 
@@ -87,7 +89,6 @@ let char_of_str s =
   let unquoted_char = String.sub s 1 ((String.length s) - 2 ) in
   if unquoted_char="\\\\" then error "%s\n" unquoted_char;
   (fix_string unquoted_char).[0] *)
-let int_of_bool b = if b then 1 else 0
 
 let cast_to_real lv = 
   match classify_type (type_of lv) with
@@ -107,8 +108,8 @@ let cast_and_build op l1 l2 =
   | O_times -> build_fmul (cast_to_real l1) (cast_to_real l2) "fmultmp" builder
   | _ -> (error "unreached *,+,_"; raise Exit)
 
-let cast_string_to_array_ptr str_const = 
-  let rec flatten str_c out_str = 
+let cast_string_to_array_ptr str = 
+  (* let rec flatten str_c out_str = 
     let new_char = str_to_char (String.sub str_c 0 2) in 
     let new_out = String.make 1 new_char in
     let out = out_str^new_out in
@@ -120,8 +121,10 @@ let cast_string_to_array_ptr str_const =
     (* trailing \000 unnecessary  *)
     if str_c.[next_first] = '\000'&& new_len=1 then out
     else flatten (String.sub str_c next_first new_len) out
-  in
-  let str  = flatten (str_const^"\000") "" in 
+  in *)
+  (* let str  = Utils.flatten (str_const^"\000") "" in  *)
+ 
+
  
   (* let str = fix_string str_const in *)
   
@@ -132,19 +135,33 @@ let cast_string_to_array_ptr str_const =
   (* build_bitcast var_ptr  (llvm_type (TYPE_ptr(TYPE_array(TYPE_char,None))) ) "str_cast" builder *)
   var_ptr
 
+
+let get_previous_frame_ptr  cur_fp =
+  let struct_size = (cur_fp |> type_of|> element_type |> struct_element_types |> Array.length )- 1 in
+
+  let prev_ptr_ptr = build_struct_gep cur_fp struct_size "prev_fp_gep" builder in
+  build_load prev_ptr_ptr "prev_fp" builder
+
+let rec find_scope cur_sc cur_fp_ptr target_sc= 
+  match  cur_sc=target_sc with
+  | true -> cur_fp_ptr
+  | _ -> find_scope (cur_sc - 1) (get_previous_frame_ptr cur_fp_ptr) target_sc
+
+
 let compile_const c =
+  let int_of_bool b = if b then 1 else 0 in
   let l_t = llvm_type (Sem_expr.sem_const c) in
   match c with
   | INT n -> const_int l_t n
   | REAL r -> const_float l_t r
-  | CHAR c -> const_int l_t (int_of_char (str_to_char c))
+  | CHAR c -> const_int l_t (int_of_char (Utils.str_to_char c))
   | BOOL b -> const_int l_t (int_of_bool b)
   | NIL ->  const_pointer_null l_t
 
-let llval v = match v with 
+(* let llval v = match v with 
   | LL lv -> lv
   | LL_dummy -> const_null (void_type context)
-  |_ -> raise Exit
+  |_ -> raise Exit *)
 
 let rec compile_unop unop e =
   let lv=(compile_expr e) in  
@@ -231,7 +248,7 @@ and compile_logic_op op e1 e2 =
   let ret_ptr = build_alloca (llvm_type TYPE_bool) "short_circ_tmp" builder in
   let lv1_casted = (build_intcast (compile_expr e1) (i1_type context) "e1 cast logic" builder) in
   let lv2_casted = (build_intcast (compile_expr e2) (i1_type context) "e2 cast logic" builder) in
-  let (el_b,mer_b) = compile_if_then e1 in
+  let (el_b,mer_b) = compile_if_then ~compile_cond:false ~casted_cond:lv1_casted e1 in
   match op with 
 
   |O_and  -> 
@@ -269,7 +286,7 @@ and compile_bin_op op e1 e2  =
   |Logic_op  logic_o -> compile_logic_op logic_o e1 e2 
 and compile_op op_e = 
   match op_e with 
-  | At Lval(lv,pos) ->  get_val_ptr lv pos
+  | At Lval(lv,pos) ->  get_val_ptr lv pos (*check if null?*)
   | Unary (op, e) -> compile_unop op e 
   | Binary (e1, op, e2) -> compile_bin_op op e1 e2 
   | _ -> raise Exit (*unreachable*)
@@ -304,7 +321,7 @@ and compile_expr e =
           build_bitcast ptr arr_ptr_type "arr_cast" builder
         in
 
-        let get_previous_frame_ptr  cur_fp =
+        (* let get_previous_frame_ptr  cur_fp =
           let struct_size = (cur_fp |> type_of|> element_type |> struct_element_types |> Array.length )- 1 in
 
           let prev_ptr_ptr = build_struct_gep cur_fp struct_size "prev_fp_gep" builder in
@@ -314,9 +331,9 @@ and compile_expr e =
           match  cur_sc=fun_sc with
           | true -> cur_fp_ptr
           | _ -> find_scope (cur_sc - 1) (get_previous_frame_ptr cur_fp_ptr)
-        in 
+        in  *)
         let scope_arg  = 
-          let scope = find_scope cur_s (Stack.top frame_pointers) in
+          let scope = find_scope cur_s (Stack.top frame_pointers) fun_sc in
           if (Array.length (struct_element_types (type_of scope)))>0 then 
             [| scope |] else [||] in
         (* if (Array.length pars)>0 then [|pars.((Array.length pars)-1 )|] 
@@ -371,19 +388,7 @@ and get_val_ptr lv pos =
           llval entry.entry_val
          else *)
       let current_frame_ptr = if Stack.is_empty frame_pointers then raise Exit else   Stack.top frame_pointers in
-      let get_previous_frame_ptr  cur_fp =
-        let struct_size = (cur_fp |> type_of|> element_type |> struct_element_types |> Array.length )- 1 in
-
-        let prev_ptr_ptr = build_struct_gep cur_fp struct_size "prev_fp_gep" builder in
-        build_load prev_ptr_ptr "prev_fp" builder
-      in
-      let rec find_scope cur_sc cur_fp_ptr = 
-        match  cur_sc=entr_sc with
-        | true -> cur_fp_ptr
-        | _ -> find_scope (cur_sc - 1) (get_previous_frame_ptr cur_fp_ptr)
-      in 
-
-      let correct_sc_ptr = find_scope (!currentScope.sco_nesting) current_frame_ptr in
+      let correct_sc_ptr = find_scope current_s current_frame_ptr entr_sc in
       let offset = 
         match inf with 
         |ENTRY_variable vi -> ((abs vi.variable_offset)-1)
@@ -396,18 +401,17 @@ and get_val_ptr lv pos =
           let tmp_addr = build_struct_gep correct_sc_ptr offset "tmp_var_addr" builder in
            build_load tmp_addr "var_addr" builder 
           
-        | _ -> raise Exit
+        | _ -> raise Exit (* unreachable*)
 
-
- in ptr
-
+      in ptr
   | Array_element (l,e) -> 
     begin
+      let llvm_int n = const_int (i32_type context) n  in
       let struct_arr_ptr = get_val_ptr l pos in
       let index =  build_intcast (compile_expr e) (i32_type context) "idx_cast" builder in
       
       build_gep struct_arr_ptr [| llvm_int(0) ;index |] "array_element_gep" builder
-      
+      (* no check: index out of bound *)
 
       end 
   | Deref e -> 
@@ -417,7 +421,7 @@ and get_val_ptr lv pos =
       lv_ptr
       (* build_load lv_ptr_ptr (id^"_ptr_ptr") builder  *)
     end
-  |Res ->get_val_ptr (Var("result")) pos(*llval (lookupEntry (id_make "result") LOOKUP_ALL_SCOPES true pos).entry_val*) 
+  |Res -> get_val_ptr (Var("result")) pos(*llval (lookupEntry (id_make "result") LOOKUP_ALL_SCOPES true pos).entry_val*) 
   |String_const str -> cast_string_to_array_ptr str 
 
 and compile_lvalue lv pos =
@@ -432,9 +436,9 @@ and compile_lvalue lv pos =
 
   | Res -> build_load lv_ptr "result"  builder
 
-  and compile_if_then e = 
-
-    let cond = compile_expr e in
+  and compile_if_then ?compile_cond:(compile_cond=true) ?casted_cond:(casted_cond=(context |> i1_type |> const_null)) e = 
+    (* optional params are needed when short circuiting to avoid compiling condition twice *)
+    let cond = if compile_cond then compile_expr e else context |> i1_type |> const_null in
     let start_bb = insertion_block builder in
     let the_function = block_parent start_bb in
     let test_block = append_block context "test" the_function in
@@ -444,7 +448,7 @@ and compile_lvalue lv pos =
     position_at_end start_bb builder;
     ignore(build_br test_block builder) ;
     position_at_end test_block builder; 
-    let i1_cond = build_intcast cond (i1_type context) "ifcast" builder in
+    let i1_cond = if compile_cond then build_intcast cond (i1_type context) "ifcast" builder else casted_cond in
     ignore(build_cond_br i1_cond  then_block else_block builder);
   
     position_at_end then_block builder; 

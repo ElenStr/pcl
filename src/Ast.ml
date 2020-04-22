@@ -121,9 +121,6 @@ match expr with
 | E_call (id, params,_) -> "Call("^id^","^(List.fold_right (fun x y -> (expr_to_string x)^","^y ) params "")^")"
 
 
-
-
-
 let rec print_decl ast =
   match ast with
   | D_var (ids, t, _) -> printf "\nIDS(%s)" (decl_to_string ast)
@@ -134,9 +131,6 @@ let rec print_decl ast =
 
   | D_header (id, t, params, _) -> printf "\nHEADER(%s)" (decl_to_string ast)
   | D_fun (hd, (locals,bd)) -> print_decl hd;  List.iter print_decl locals; print_stmt bd                              
-
-
-
 
 
 and  print_stmt stmt =
@@ -170,8 +164,4 @@ and  print_stmt stmt =
 and  print_expr e =
   printf "%s" (expr_to_string e)
 
-
-
 and print (decls,stmts) = List.iter print_decl decls;print_stmt stmts
-
-

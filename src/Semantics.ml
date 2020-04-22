@@ -105,7 +105,7 @@ and sem_stmt stmt =
   | S_assign (lv, e,st,fin) -> 
     begin
       if not(is_assignement_compatible (sem_lvalue lv st) (sem_expr e)) then 
-        (error "%a Incompatible assignement %s to %s" print_position (position_context st fin) (pcl_type_str (sem_lvalue lv st) ) (pcl_type_str (sem_expr e) ); raise Exit)
+        (error "%a Incompatible assignement %s to %s" print_position (position_context st fin) (pcl_type_str  (sem_expr e)) (pcl_type_str (sem_lvalue lv st) ); raise Exit)
       else (compile_assign lv e st)
     end
   | S_if (e, s, None) -> 
@@ -185,6 +185,7 @@ and sem_stmt stmt =
       match (sem_lvalue e pos, sem_expr n) with
       | (TYPE_ptr TYPE_array(t,None), TYPE_int) when dim>0 ->
         begin 
+          (* false param -> a lot new entries ok *)
           ignore(newVariable  (id_make ("3"^(lvalue_to_string (Deref(Lval (e,pos))))) ) 
                  (TYPE_array(t,Some(dim))) LL_dummy false pos);
           compile_new_array n e t pos

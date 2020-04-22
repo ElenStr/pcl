@@ -131,7 +131,7 @@ stmt  : {S_empty}
 expr  : l_val {Lval($1, $startpos)}
       | r_val { $1 }
 
-l_val : T_name {Var($1)}	| T_result {Res} | T_string_const {String_const($1)} 
+l_val : T_name {Var($1)}	| T_result {Res} | T_string_const {String_const(Utils.flatten ($1^"\000") "")} 
 			| l_val T_lbracket expr T_rbracket {Array_element($1,$3)}
 			| expr T_caret{Deref($1)}
 			| T_lparen l_val T_rparen {$2}
