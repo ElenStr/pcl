@@ -10,9 +10,7 @@ type typ = TYPE_none
 val sizeOfType : typ -> int
 val pcl_type_str : typ -> string
 val equalType : typ -> typ -> bool
-val is_basic : typ -> bool
 val is_complete : typ -> bool
 val is_numerical : typ -> bool
-
 val is_valid : typ -> bool
 val is_assignement_compatible : typ -> typ -> bool

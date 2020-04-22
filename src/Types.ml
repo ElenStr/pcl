@@ -7,7 +7,7 @@ type typ = TYPE_none
              typ * int option
          | TYPE_ptr of typ
 
-(* virtual space, real one is defined via LLVM *)
+(* virtual size, used to set offset in frame*)
 let rec sizeOfType t =
   match t with
   | TYPE_int  -> 1
@@ -36,11 +36,6 @@ let rec equalType t1 t2 =
   | TYPE_array (et1, Some(n1)), TYPE_array (et2, Some(n2)) -> (n1==n2) && (equalType et1 et2)
   | _-> t1 = t2 
 
-let is_basic t =
-  match t with
-    ( TYPE_int|TYPE_bool|TYPE_real|TYPE_char) -> true
-  | _-> false
-
 let  rec is_complete t = 
   match t with 
   |TYPE_array (dt,None)  -> false
@@ -55,7 +50,7 @@ let is_numerical t =
 let rec is_valid t =
   match t with 
   | TYPE_ptr dt -> (is_valid dt)
-  | TYPE_array (dt, Some(_)) -> (is_complete dt)&&(is_valid dt)
+  | TYPE_array (dt, Some(n)) -> (n>0)&&(is_complete dt)&&(is_valid dt)
   | TYPE_array (dt,None) -> (is_complete dt)&&(is_valid dt)
   | _ -> true
 
