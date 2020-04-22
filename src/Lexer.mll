@@ -82,7 +82,12 @@ rule lexer = parse
   
   | "(*" {comment lexbuf}
   | '\'' char '\'' { T_char_const ( (lexeme lexbuf))} 
-  | '\"' char* '\"' {T_string_const (String.sub (lexeme lexbuf) 1 (String.length (lexeme lexbuf)-2))}
+  | '\"' char* '\"' { if (String.contains (lexeme lexbuf) '\n') then 
+                      
+                       eprintf "Error line %d: Multiline string not allowed\n"
+                      (let pos = lexeme_start_p lexbuf in pos.pos_lnum);
+                       
+                      T_string_const (String.sub (lexeme lexbuf) 1 (String.length (lexeme lexbuf)-2))}
   |  eof          { T_eof }
   |  _ as chr     { eprintf "invalid character: '%c' (ascii: %d) in line '%d'\n"
                       chr (Char.code chr) (let pos = lexeme_start_p lexbuf in pos.pos_lnum);
