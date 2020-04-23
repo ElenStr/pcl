@@ -21,13 +21,14 @@ For convenience the contents of the repo are copied in folder edsger_lib. To bui
 '''
 cd edsger_lib
 ./libs.sh
-
 '''
+
 A `lib.a` file is created and will be required later
 
 ## Run
 The compiler executable is named `pclc`. Run with file as input with :
 '''
+
 ./pclc path/to/program.pcl
 
 '''
