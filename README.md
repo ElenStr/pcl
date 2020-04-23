@@ -1,7 +1,7 @@
 # pcl
 
 Compiler implementation for [PCL](http://courses.softlab.ntua.gr/compilers/2019a/pcl2019.pdf) language in OCaml using LLVM. 
-See implementation report in PCL.pdf.
+See implementation report in PCL.pdf in greek.
 
 ## Installation
 ### Prerequisites
@@ -9,24 +9,24 @@ See implementation report in PCL.pdf.
 * ocamlbuild
 * ocamlfind (tested in 1.8.1)
 * menhir    (tested in 20190924)
-* llvm (LLVM version 9.0.1 , OCaml Llvm module version 9.0.0)
-* cmdliner  (tested in  1.0.2)
+* llvm (LLVM version 9.0.1 , OCaml Llvm package version 9.0.0)
+* cmdliner  (OCaml package tested in  1.0.2)
 
 Once all packages needed in Makefile are installed (installation via opam recommended),
 produce the compiler executable simply by cloning the project and running make. 
 
 ## Build Library
-The pcl library functions are implented in [this repo](https://github.com/abenetopoulos/edsger_lib).
+The pcl library functions are implemented in [this repo](https://github.com/abenetopoulos/edsger_lib).
 For convenience the contents of the repo are copied in folder edsger_lib. To build library functions :
 
 ```
 cd edsger_lib
 ./libs.sh
 ```
-A `lib.a` file is created and will be required later
+A `lib.a` file is created and will be required later.
 
 ## Run
-The compiler executable is named `pclc`. Run with file as input with :
+The compiler executable is named `pclc`. Run with file input :
 
 ```
 ./pclc path/to/program.pcl
@@ -41,7 +41,7 @@ run :
 Explicit program behaviour specified in greek in [language specification](http://courses.softlab.ntua.gr/compilers/2019a/pcl2019.pdf)
 in chapter 4.
 
-## Create exexcutable
+## Create executable
 To produce final executable edit `link.sh` CLANG variable appropriately (however version 8.0.1 is tested) and run :
 
 ```
