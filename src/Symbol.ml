@@ -117,6 +117,8 @@ let closeScope () =
       internal "cannot close the outer scope!"
 
 exception Failure_NewEntry of entry
+let removeEntry e = 
+  H.remove !tab e.entry_id
 
 let rec newEntry id inf llv err pos =
   try
@@ -138,8 +140,12 @@ let rec newEntry id inf llv err pos =
     !currentScope.sco_entries <- e :: !currentScope.sco_entries;
     e
   with Failure_NewEntry e ->
-    
-    error "%a duplicate identifier %a" print_position (position_point pos) pretty_id id;
+    let _ =  match (id_name id).[0] with 
+    | '3' -> ()
+    | '2' -> ()
+    | _ -> error "%a duplicate identifier \
+        %a" print_position (position_point pos) pretty_id id;
+    in
     e
 
 let lookupEntry id how err pos =

@@ -58,14 +58,14 @@ let frame_pointers = Stack.create ()
     (* TODO: iarray cast!!!! *)
 
 (* maybe move to compile.ml *)
-let cast_to_compatible rv rv_e lv_ptr lv_e pos = 
+(* let cast_to_compatible rv rv_e lv_ptr lv_e pos = 
   let lval_type =  element_type (type_of lv_ptr) in
   match (sem_expr rv_e, sem_lvalue lv_e pos) with
     |(TYPE_ptr(TYPE_none), _) -> build_bitcast rv lval_type "cast nil" builder
     |(TYPE_int, TYPE_real) -> build_sitofp rv lval_type "cast int to real" builder
     |(TYPE_ptr(TYPE_array(dt,Some(n))), TYPE_ptr(TYPE_array(_,_))) -> 
       build_bitcast rv lval_type "arr_cast" builder
-    | _ -> rv
+    | _ -> rv *)
   
 
 (* let str_to_char s = 
@@ -333,9 +333,12 @@ and compile_expr e =
           | _ -> find_scope (cur_sc - 1) (get_previous_frame_ptr cur_fp_ptr)
         in  *)
         let scope_arg  = 
-          let scope = find_scope cur_s (Stack.top frame_pointers) fun_sc in
+           if fun_sc >0 then
+           [| find_scope cur_s (Stack.top frame_pointers) fun_sc |] 
+           (* else in
           if (Array.length (struct_element_types (type_of scope)))>0 then 
-            [| scope |] else [||] in
+            [| scope |] *)
+            else [||] in 
         (* if (Array.length pars)>0 then [|pars.((Array.length pars)-1 )|] 
            else *)
 
@@ -365,7 +368,7 @@ and compile_expr e =
             | (TypeKind.Integer, TypeKind.X86fp80) -> cast_to_real actual
             | (TypeKind.Pointer, _) ->
             build_bitcast actual form_type
-             "cast_to_real_params" builder
+             "cast_to_formal_params" builder
             | _ -> actual in
             cast_params_to_compatible act_type form_type actual) (Llvm.params fn) in
             
@@ -456,14 +459,14 @@ and compile_lvalue lv pos =
   
   and compile_else (else_block, merge_block)  = 
   
-    let nested_then = insertion_block builder; in
-    position_at_end nested_then builder;
+    let current_bb = insertion_block builder; in
+    position_at_end current_bb builder;
     ignore(build_br merge_block builder);
   
     position_at_end else_block builder 
   
   and compile_merge merge_block =            
-    let nested_else = insertion_block builder; in
-    position_at_end nested_else builder;
+    let current_bb = insertion_block builder; in
+    position_at_end current_bb builder;
     ignore(build_br merge_block builder);
     position_at_end merge_block builder

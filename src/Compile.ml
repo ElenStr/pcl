@@ -187,10 +187,10 @@ let compile_goto to_b id pos=
   let to_bb = bb_of_llb to_b id pos false in
   let current_bb = insertion_block Compile_expr.builder in
   let the_function = block_parent current_bb in
-  let new_goto_block = append_block context "goto" the_function in
+  let goto_cont_block = append_block context "goto_cont" the_function in
   position_at_end current_bb Compile_expr.builder;
   ignore(build_br to_bb Compile_expr.builder);
-  position_at_end new_goto_block Compile_expr.builder
+  position_at_end goto_cont_block Compile_expr.builder
 
 let compile_while e =
   let current_bb = insertion_block Compile_expr.builder in
@@ -215,7 +215,15 @@ let compile_while_end test cont =
   position_at_end cont Compile_expr.builder
 
 let compile_assign lv e lv_pos = 
-
+  let cast_to_compatible rv rv_e lv_ptr lv_e pos = 
+    let lval_type =  element_type (type_of lv_ptr) in
+    match (Sem_expr.sem_expr rv_e, Sem_expr.sem_lvalue lv_e pos) with
+      |(TYPE_ptr(TYPE_none), _) -> build_bitcast rv lval_type "cast nil" Compile_expr.builder
+      |(TYPE_int, TYPE_real) -> build_sitofp rv lval_type "cast int to real" Compile_expr.builder
+      |(TYPE_ptr(TYPE_array(dt,Some(n))), TYPE_ptr(TYPE_array(_,_))) -> 
+        build_bitcast rv lval_type "arr_cast" Compile_expr.builder
+      | _ -> rv
+  in 
   let lv_ptr = get_val_ptr lv lv_pos in
   
   let rval = compile_expr e in
@@ -232,15 +240,16 @@ let compile_new_el lv t pos=
 
 let compile_dispose_el lv pos = 
   let llv = compile_lvalue lv pos in
+  let llv_ptr = get_val_ptr lv pos in
   (* if is so far unreached semantics taking care of this so far*)
-  if is_null llv then
+  (* if is_null llv then
     (error "%a memory must be allocated before is freed" 
        print_position (position_point pos); raise Exit)
-  else
-    begin
+  else *)
+    (* begin *)
       ignore(build_free llv Compile_expr.builder);
-      ignore(build_store (const_null (element_type (type_of llv) )) llv  Compile_expr.builder)
-    end
+      ignore(build_store (const_null (type_of llv) ) llv_ptr  Compile_expr.builder)
+    (* end *)
 
 
 let compile_new_array n lv t pos = 
@@ -271,14 +280,15 @@ let compile_new_array n lv t pos =
 
 let compile_dispose_array lv pos = 
   let llv = compile_lvalue lv pos in
-  if is_null llv then
+  let lv_ptr = get_val_ptr lv pos in 
+  (* if is_null llv then
     (error "%a memory must be allocated before is freed" 
        print_position (position_point pos); raise Exit)
   else
-    begin
+    begin *)
       ignore(build_free llv Compile_expr.builder);
-      ignore(build_store (const_null (element_type (type_of llv) )) llv Compile_expr.builder)
-    end
+      ignore(build_store (const_null (type_of llv) ) lv_ptr Compile_expr.builder)
+    (* end *)
 (* let compile_return () = 
   let current_bb = insertion_block Compile_expr.builder in
   let the_function = block_parent current_bb in

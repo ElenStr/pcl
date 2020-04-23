@@ -137,7 +137,7 @@ and sem_stmt stmt =
   | S_while (e,s) -> 
     begin 
       match  (sem_expr e) with 
-      | TYPE_bool ->(let test, con = compile_while e in sem_stmt s;compile_while_end test con)
+      | TYPE_bool ->(let test, cont = compile_while e in sem_stmt s;compile_while_end test cont)
       | _  -> error "Expression must be boolean "     
     end 
   | S_label (id, s,pos) -> 
@@ -170,7 +170,7 @@ and sem_stmt stmt =
       match sem_lvalue lv pos with
       | TYPE_ptr t when is_complete t -> 
         begin
-          ignore(newVariable  (id_make ("2"^(lvalue_to_string lv))) t LL_dummy false pos);
+          ignore(newVariable  (id_make ("2"^(lvalue_to_string lv))) t LL_dummy true pos);
           compile_new_el lv t pos 
         end
       | _ -> error "%a Expression %s must be of type pointer \
@@ -185,9 +185,8 @@ and sem_stmt stmt =
       match (sem_lvalue e pos, sem_expr n) with
       | (TYPE_ptr TYPE_array(t,None), TYPE_int) when dim>0 ->
         begin 
-          (* false param -> a lot new entries ok *)
           ignore(newVariable  (id_make ("3"^(lvalue_to_string (Deref(Lval (e,pos))))) ) 
-                 (TYPE_array(t,Some(dim))) LL_dummy false pos);
+                 (TYPE_array(t,Some(dim))) LL_dummy true pos);
           compile_new_array n e t pos
         end
 
@@ -200,8 +199,9 @@ and sem_stmt stmt =
       match sem_lvalue lv pos with
       | TYPE_ptr t when is_complete t -> 
         begin
-          ignore(lookupEntry (id_make ( "2"^(lvalue_to_string lv))) LOOKUP_ALL_SCOPES true pos);
-          compile_dispose_el lv pos
+          let e = lookupEntry (id_make ( "2"^(lvalue_to_string lv))) LOOKUP_ALL_SCOPES true pos in 
+          compile_dispose_el lv pos;
+          removeEntry e;
         end
       | _ -> error "%a Expression %s must be of type pointer \
                     of complete type" print_position (position_point pos) (lvalue_to_string lv)
@@ -211,8 +211,9 @@ and sem_stmt stmt =
     match (sem_lvalue e pos) with
     | (TYPE_ptr TYPE_array(t,None))->
       begin 
-         ignore(lookupEntry (id_make ( "3"^(lvalue_to_string (Deref(Lval (e,pos)))))) LOOKUP_ALL_SCOPES true pos);
-         compile_dispose_array e pos
+         let ent = lookupEntry (id_make ( "3"^(lvalue_to_string (Deref(Lval (e,pos)))))) LOOKUP_ALL_SCOPES true pos in
+         compile_dispose_array e pos;
+         removeEntry ent;
         end
 
         | _ -> error "%a Expression %s must be of type array pointer \

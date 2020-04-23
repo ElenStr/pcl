@@ -70,6 +70,7 @@ val newVariable      : Identifier.id -> Types.typ -> llvm_val-> bool -> Lexing.p
 val newFunction      : Identifier.id -> llvm_val -> bool -> Lexing.position -> entry
 val newParameter     : Identifier.id -> Types.typ -> pass_mode ->
   entry -> llvm_val-> bool -> Lexing.position -> entry
+val removeEntry : entry -> unit
 (* val newTemporary     : Types.typ -> llvm_val -> Lexing.position -> entry *)
 
 val forwardFunction   : entry -> unit
