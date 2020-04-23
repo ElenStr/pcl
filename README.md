@@ -1,4 +1,4 @@
-# pcl
+# PCL compiler
 
 Compiler implementation for [PCL](http://courses.softlab.ntua.gr/compilers/2019a/pcl2019.pdf) language in OCaml using LLVM. 
 See implementation report in PCL.pdf in greek.
