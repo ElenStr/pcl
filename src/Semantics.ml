@@ -1,6 +1,5 @@
 open Printf
 open Ast
-
 open Format
 open Error
 open Utils
@@ -9,9 +8,6 @@ open Types
 open Symbol
 open Compile
 open Frames
-open Llvm_executionengine
-open Llvm_target
-open Llvm_scalar_opts
 open Compile_expr
 open Sem_expr
 exception Invalid
@@ -25,7 +21,6 @@ let rec sem_decl ast f fd =
         ignore (List.map (fun id -> (newVariable (id_make id) t (LL_dummy) true pos)) ids ) 
       else error "%a Invalid variable type" print_position (position_point pos)
     end
-
   | (D_label (ids,pos), None, true )-> ignore (List.map (fun id -> (newVariable (id_make id) TYPE_none LL_dummy true pos )) ids ) 
   | (D_param (ids , t , m, pos),Some(f),_) -> 
     begin
@@ -42,59 +37,45 @@ let rec sem_decl ast f fd =
       | _ -> 
         begin
           let fn = newFunction (id_make id) LL_dummy true pos in
-
           (if fl then forwardFunction fn) ; 
-          (* printSymbolTable();  *)
           openScope();                                               
-          (* printSymbolTable();  *)
+
           List.iter (fun p -> sem_decl p (Some fn) fl )  params ;
 
           endFunctionHeader fn t; 
+
           let scope_num = 
             let num = (fn.entry_scope.sco_nesting) in
             if num=0 then "" else string_of_int num in
           let fb_name = (id^scope_num) in 
-          
+
           let fn_ll =  
-             compile_proto fb_name t params in 
-           fn.entry_val <- LL(fn_ll) ;
-          (* Scope.set_env fn.entry_info builder; *)
+            compile_proto fb_name t params in 
+          fn.entry_val <- LL(fn_ll) ;
+
           if fl then closeScope() 
-          else  begin
-
-            compile_header fn.entry_val params;
-
-            if t <> TYPE_none then 
-            ignore(newVariable (id_make "result") t LL_dummy true Lexing.dummy_pos);
-
-
-            
-          end ;
-          (* allow functions with same proto different scopes different definition *)
-          (* printSymbolTable() *)
+          else  
+            begin
+              compile_header fn.entry_val params;
+              if t <> TYPE_none then 
+                ignore(newVariable (id_make "result") t LL_dummy true Lexing.dummy_pos);
+            end ;
         end
     end
   | (D_fun (hd, (locals,bd)),None,true )-> 
     let previous_block = Llvm.insertion_block Compile_expr.builder in
+
     sem_decl hd None false; 
-    (* let ret_block = Utils.ret_block_of_hd hd in *)
     new_frame (find_function_scope hd locals );
-    
-    (* Llvm.dump_module the_module; *)
-    
+
     List.iter (fun l -> sem_decl l None true)  locals ;
     sem_decl ( D_label(["4ret"],Lexing.dummy_pos)) None true;
-     (* printSymbolTable();  *)
-    
-    (* Llvm.dump_module the_module; *)
     sem_stmt bd;
-     (* delete_frame ();  *)
-     sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));     
-     
-     compile_ret hd previous_block ;
-     ignore(Stack.pop frame_pointers);
-    
-    (* printSymbolTable();   *)
+
+    sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));     
+    compile_ret hd previous_block ;
+    ignore(Stack.pop frame_pointers);
+
     checkSymbolTable();
     closeScope() 
   |_ -> ()
@@ -132,7 +113,6 @@ and sem_stmt stmt =
           compile_merge (mer_b);
         end 
       | _  -> error "Expression must be boolean "     
-
     end
   | S_while (e,s) -> 
     begin 
@@ -142,7 +122,7 @@ and sem_stmt stmt =
     end 
   | S_label (id, s,pos) -> 
     begin 
-      
+
       let entr = lookupEntry (id_make id) LOOKUP_CURRENT_SCOPE true pos in
       match entr.entry_info with
       |ENTRY_variable _ -> 
@@ -156,15 +136,13 @@ and sem_stmt stmt =
     end
   | S_goto (id,pos) ->
     begin 
-     
       let entr = lookupEntry (id_make id) LOOKUP_CURRENT_SCOPE true pos in
       match entr.entry_info with
-      |ENTRY_variable _ -> compile_goto entr.entry_val id pos
+      | ENTRY_variable _ -> compile_goto entr.entry_val id pos
       | _ -> (error "%a %s is not a label" print_position (position_point pos) id)
     end
   | S_return -> sem_stmt (S_goto("4ret",Lexing.dummy_pos)) 
   | S_call call -> ignore(sem_expr call) ;ignore(compile_expr call)
-                    
   | S_new_el (lv,pos) ->
     begin
       match sem_lvalue lv pos with
@@ -176,7 +154,6 @@ and sem_stmt stmt =
       | _ -> error "%a Expression %s must be of type pointer \
                     of complete type" print_position (position_point pos) (lvalue_to_string lv)
     end
-
   | S_new_array (n, e, pos) -> 
     begin
       let eval_expr n = 
@@ -186,10 +163,9 @@ and sem_stmt stmt =
       | (TYPE_ptr TYPE_array(t,None), TYPE_int) when dim>0 ->
         begin 
           ignore(newVariable  (id_make ("3"^(lvalue_to_string (Deref(Lval (e,pos))))) ) 
-                 (TYPE_array(t,Some(dim))) LL_dummy true pos);
+                   (TYPE_array(t,Some(dim))) LL_dummy true pos);
           compile_new_array n e t pos
         end
-
       | _ -> error "%a Expression %s must be of type array pointer \
                     and dimension must be positive"
                print_position (position_point pos) (lvalue_to_string e)
@@ -200,52 +176,48 @@ and sem_stmt stmt =
       | TYPE_ptr t when is_complete t -> 
         begin
           let e = lookupEntry (id_make ( "2"^(lvalue_to_string lv))) LOOKUP_ALL_SCOPES true pos in 
-          compile_dispose_el lv pos;
+          compile_dispose lv pos;
           removeEntry e;
         end
       | _ -> error "%a Expression %s must be of type pointer \
                     of complete type" print_position (position_point pos) (lvalue_to_string lv)
     end
   | S_dispose_array (e,pos) ->
-  begin
-    match (sem_lvalue e pos) with
-    | (TYPE_ptr TYPE_array(t,None))->
-      begin 
-         let ent = lookupEntry (id_make ( "3"^(lvalue_to_string (Deref(Lval (e,pos)))))) LOOKUP_ALL_SCOPES true pos in
-         compile_dispose_array e pos;
-         removeEntry ent;
+    begin
+      match (sem_lvalue e pos) with
+      | (TYPE_ptr TYPE_array(t,None))->
+        begin 
+          let ent = lookupEntry (id_make ( "3"^(lvalue_to_string (Deref(Lval (e,pos)))))) LOOKUP_ALL_SCOPES true pos in
+          compile_dispose e pos;
+          removeEntry ent;
         end
-
-        | _ -> error "%a Expression %s must be of type array pointer \
-                      and dimension must be positive"
-                 print_position (position_point pos) (lvalue_to_string e)
-      end
+      | _ -> error "%a Expression %s must be of type array pointer \
+                    and dimension must be positive"
+               print_position (position_point pos) (lvalue_to_string e)
+    end
   | S_empty -> ()
-
 
 and sem (decls,stmt) o = 
   initSymbolTable 256;
   compile_main o;
-  
+
   List.iter (fun l -> sem_decl l None true) lib;
-  
+
   Stack.push  (Llvm.const_pointer_null (Llvm.struct_type context [||] )) frame_pointers;
   new_frame ((find_all_vars decls [||]),0);
-  
+
   openScope ();
-  
+
   List.iter (fun l -> sem_decl l None true)  decls ; 
   sem_decl ( D_label(["4ret"],Lexing.dummy_pos)) None true;
-
   sem_stmt  stmt ; 
-  sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));
 
+  sem_stmt (S_label("4ret",S_empty,Lexing.dummy_pos));
   compile_main_ret ();
-  (* Llvm.dump_module the_module; *)
+
   Llvm_analysis.assert_valid_module the_module; 
   let _ = Llvm.PassManager.run_module the_module Compile_expr.the_fpm in
-  (* printSymbolTable ();  *)
+
   checkSymbolTable();
   closeScope();
   the_module
-  

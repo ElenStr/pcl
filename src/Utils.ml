@@ -37,10 +37,10 @@ let lib = [
 ] 
 let str_to_char s = 
   let s = if s.[0]== '\'' then s else "\'"^s^"\'" in
-match  s with  "\'\\0\'" -> '\000' | "\'\\n\'" -> '\n'
-| "\'\\r\'" -> '\r' | "\'\\t\'" -> '\t' | "\'\\\\\'" -> '\\' | "\'\\\'\'" -> '\''
-| "\'\\\"\'" -> '\"' | " " -> ' '
-| _ -> (Str.global_replace (Str.regexp "\'") "" s).[0]
+  match  s with  "\'\\0\'" -> '\000' | "\'\\n\'" -> '\n'
+               | "\'\\r\'" -> '\r' | "\'\\t\'" -> '\t' | "\'\\\\\'" -> '\\' | "\'\\\'\'" -> '\''
+               | "\'\\\"\'" -> '\"' | " " -> ' '
+               | _ -> (Str.global_replace (Str.regexp "\'") "" s).[0]
 
 let rec flatten str_c out_str = 
   let new_char = str_to_char (String.sub str_c 0 2) in 
@@ -51,7 +51,6 @@ let rec flatten str_c out_str =
     if new_char=str_c.[0] && new_char!='\\'then (1,len-1 )
     else (2,len-2) in
   let new_len  = if len=3&&next_first=2 then 1 else new_len in
-  (* trailing \000 unnecessary  *)
   if str_c.[next_first] = '\000'&& new_len=1 then out
   else flatten (String.sub str_c next_first new_len) out
 
@@ -59,32 +58,6 @@ let block_of_llb llb =
   match llb with
     LLB bb -> bb
   | _ -> raise Exit
-
-(* let ret_block_of () = 
-
-  let ent_val = (lookupEntry (id_make "9result")  LOOKUP_CURRENT_SCOPE true Lexing.dummy_pos).entry_val in 
-
-  block_of_llb ent_val *)
-
-
-
-(* let rec ret_block_of_id id pos = 
-
-  let ent_inf = (lookupEntry (id_make id)  LOOKUP_ALL_SCOPES true pos).entry_info in 
-  match ent_inf with 
-  | ENTRY_function inf -> block_of_llb inf.function_ret_block
-  | _ -> ret_block_of_id id pos
-
-let  ret_block_of_hd hd = 
-
-  match hd with 
-  | (D_header(id,_,_,pos) )->begin 
-  let ent_val = (lookupEntry (id_make ("9"^id^"result"))  LOOKUP_ALL_SCOPES true Lexing.dummy_pos).entry_val in 
-
-  block_of_llb ent_val end
-  | _ -> raise Exit *)
-
-
 
 let show_offsets = true
 
@@ -124,9 +97,9 @@ let param_type p =
   | _ -> raise Exit (*unreached*)
 
 let param_mode p = 
-    match p with 
-    | D_param(_, _, m, _) -> m
-    | _ -> raise Exit (*unreached*)
+  match p with 
+  | D_param(_, _, m, _) -> m
+  | _ -> raise Exit (*unreached*)
 
 let printSymbolTable () = 
   let rec walk ppf scp =
@@ -146,39 +119,28 @@ let printSymbolTable () =
               fprintf ppf "[%d]" inf.parameter_offset;
 
           | ENTRY_function inf ->
-            (* if inf.function_isForward && not (List.exists (fun hd -> begin 
-                  match hd with (D_header(id, _ , _, _)) -> (e.entry_id=(id_make id))
-                              | _ -> false
-                end) lib) then 
-              (error "Undefined function: %a" pretty_id e.entry_id;
-                raise Exit)
-            else     *)
-              begin
-                let param ppf e =
-
-                  match e.entry_info with
-                  | ENTRY_parameter inf ->
-                    fprintf ppf "%a%a : %a"
-                      pretty_mode inf.parameter_mode
-                      pretty_id e.entry_id
-                      pretty_typ inf.parameter_type
-                  | _ ->
-                    fprintf ppf "<invalid>" in
-                let rec params ppf ps =
-                  match ps with
-                  | [p] ->
-                    fprintf ppf "%a" param p
-                  | p :: ps ->
-                    fprintf ppf "%a; %a" param p params ps;
-                  | [] ->   
-                    () in
-                fprintf ppf "(%a) : %a"
-                  params inf.function_paramlist
-                  pretty_typ inf.function_result
-              end
-          (* | ENTRY_temporary inf ->
-            if show_offsets then
-              fprintf ppf "[%d]" inf.temporary_offset  *)
+            begin
+              let param ppf e =
+                match e.entry_info with
+                | ENTRY_parameter inf ->
+                  fprintf ppf "%a%a : %a"
+                    pretty_mode inf.parameter_mode
+                    pretty_id e.entry_id
+                    pretty_typ inf.parameter_type
+                | _ ->
+                  fprintf ppf "<invalid>" in
+              let rec params ppf ps =
+                match ps with
+                | [p] ->
+                  fprintf ppf "%a" param p
+                | p :: ps ->
+                  fprintf ppf "%a; %a" param p params ps;
+                | [] ->   
+                  () in
+              fprintf ppf "(%a) : %a"
+                params inf.function_paramlist
+                pretty_typ inf.function_result
+            end
         in
         let rec entries ppf es =
           match es with
@@ -212,50 +174,45 @@ let checkSymbolTable () =
       begin             
         let entry e =
           match e.entry_info with
-          
-            
-          | ENTRY_variable inf ->begin
-            let id_str = id_name e.entry_id in
-            (* if id_str.[0]='1' then  *)
+          | ENTRY_variable inf ->
+            begin
+              let id_str = id_name e.entry_id in
               match e.entry_val with 
-              LL(_) -> (error "Undefined label \
-              %s" id_str;
-              raise Exit)
-              | _ -> ()(* else ()  *)           
-              
-          end
+                LL(_) -> (error "Undefined label \
+                                 %s" id_str;
+                          raise Exit)
+              | _ -> ()          
 
+            end
           | ENTRY_function inf ->
             if inf.function_isForward && not (List.exists (fun hd -> begin 
-                  match hd with (D_header(id, _ , _, _)) -> (e.entry_id=(id_make id))
-                              | _ -> false
+                  match hd with 
+                   (D_header(id, _ , _, _)) -> (e.entry_id=(id_make id))
+                  | _ -> false
                 end) lib) then 
               (error "Undefined function: %a" pretty_id e.entry_id;
-                raise Exit)
+               raise Exit)
             else   () 
-                                  
+
           | _ -> ()
-            
+
         in
         let rec entries  es =
           match es with
           | [e] ->
             entry e
           | e :: es ->
-              entry e ;entries es;
+            entry e ;entries es;
           | [] ->
             () in
-        (* match scp.sco_parent with
-        | Some scpar -> *)
-          
-            entries scp.sco_entries;
-            (* walk scpar
-        | None ->
-          () *)
+
+
+        entries scp.sco_entries;
+
       end in
   let scope scp =
     if scp.sco_nesting == 0 then
       ()
     else
       walk scp in
-        scope !currentScope
+  scope !currentScope

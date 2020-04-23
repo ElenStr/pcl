@@ -40,16 +40,10 @@ and parameter_info = {                        (****** ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿
   parameter_mode           : pass_mode        (* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½     *)
 }
 
-(* and temporary_info = {                        (** ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ **)
-  temporary_type   : Types.typ;               (* ï¿½ï¿½ï¿½ï¿½ï¿½                 *)
-  temporary_offset : int                      (* Offset ï¿½ï¿½ï¿½ ï¿½.ï¿½.       *)
-} *)
-
 and entry_info = ENTRY_none
                | ENTRY_variable of variable_info
                | ENTRY_function of function_info
                | ENTRY_parameter of parameter_info
-               (* | ENTRY_temporary of temporary_info *)
 
 and entry = {
   entry_id    : Identifier.id;
@@ -68,10 +62,8 @@ val openScope        : unit -> unit
 val closeScope       : unit -> unit
 val newVariable      : Identifier.id -> Types.typ -> llvm_val-> bool -> Lexing.position -> entry
 val newFunction      : Identifier.id -> llvm_val -> bool -> Lexing.position -> entry
-val newParameter     : Identifier.id -> Types.typ -> pass_mode ->
-  entry -> llvm_val-> bool -> Lexing.position -> entry
+val newParameter     : Identifier.id -> Types.typ -> pass_mode ->  entry -> llvm_val-> bool -> Lexing.position -> entry
 val removeEntry : entry -> unit
-(* val newTemporary     : Types.typ -> llvm_val -> Lexing.position -> entry *)
 
 val forwardFunction   : entry -> unit
 val endFunctionHeader : entry -> Types.typ -> unit

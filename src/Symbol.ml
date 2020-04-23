@@ -9,12 +9,12 @@ module H = Hashtbl.Make (
     let equal = (==)
     let hash = Hashtbl.hash
   end
-)
+  )
 
 type pass_mode = PASS_BY_VALUE | PASS_BY_REFERENCE
 type llvm_val = 
   | LL_dummy | LL of Llvm.llvalue
-    | LLB of Llvm.llbasicblock
+  | LLB of Llvm.llbasicblock
 
 
 type param_status =
@@ -50,16 +50,10 @@ and parameter_info = {
   parameter_mode           : pass_mode
 }
 
-(* and temporary_info = {
-  temporary_type   : Types.typ;
-  temporary_offset : int
-} *)
-
 and entry_info = ENTRY_none
                | ENTRY_variable of variable_info
                | ENTRY_function of function_info
                | ENTRY_parameter of parameter_info
-               (* | ENTRY_temporary of temporary_info *)
 
 and entry = {
   entry_id    : Identifier.id;
@@ -94,8 +88,8 @@ let tempNumber = ref 1
 let tab = ref (H.create 0)
 
 let initSymbolTable size =
-   tab := H.create size;
-   currentScope := the_outer_scope
+  tab := H.create size;
+  currentScope := the_outer_scope
 
 let openScope () =
   let sco = {
@@ -112,9 +106,9 @@ let closeScope () =
   List.iter manyentry sco.sco_entries;
   match sco.sco_parent with
   | Some scp ->
-      currentScope := scp
+    currentScope := scp
   | None ->
-      internal "cannot close the outer scope!"
+    internal "cannot close the outer scope!"
 
 exception Failure_NewEntry of entry
 let removeEntry e = 
@@ -126,7 +120,7 @@ let rec newEntry id inf llv err pos =
       try
         let e = H.find !tab id in
         if e.entry_scope.sco_nesting = !currentScope.sco_nesting then
-           raise (Failure_NewEntry e)
+          raise (Failure_NewEntry e)
       with Not_found ->
         ()
     end;
@@ -135,16 +129,16 @@ let rec newEntry id inf llv err pos =
       entry_scope = !currentScope;
       entry_info = inf;
       entry_val = llv
-      } in
+    } in
     H.add !tab id e;
     !currentScope.sco_entries <- e :: !currentScope.sco_entries;
     e
   with Failure_NewEntry e ->
     let _ =  match (id_name id).[0] with 
-    | '3' -> ()
-    | '2' -> ()
-    | _ -> error "%a duplicate identifier \
-        %a" print_position (position_point pos) pretty_id id;
+      | '3' -> ()
+      | '2' -> ()
+      | _ -> error "%a duplicate identifier \
+                    %a" print_position (position_point pos) pretty_id id;
     in
     e
 
@@ -153,37 +147,37 @@ let lookupEntry id how err pos =
   let lookup () =
     match how with
     | LOOKUP_CURRENT_SCOPE ->
-        let e = H.find !tab id in
-        if e.entry_scope.sco_nesting = scc.sco_nesting then
-          e
-        else
-          raise Not_found
+      let e = H.find !tab id in
+      if e.entry_scope.sco_nesting = scc.sco_nesting then
+        e
+      else
+        raise Not_found
     | LOOKUP_ALL_SCOPES ->
-        H.find !tab id in
+      H.find !tab id in
   if err then
     try
       lookup ()
     with Not_found ->
-    let _ = 
-      match (id_name id).[0] with 
-      |'3' ->  error "%a Dynamic array \
-          not allocated" print_position (position_point pos)
-      | '2' -> error "%a Dynamic element \
-          not allocated" print_position (position_point pos) 
-      | _ ->
-        (error "%a unknown identifier %a (first occurrence)" print_position (position_point pos)
-          pretty_id id)
+      let _ = 
+        match (id_name id).[0] with 
+        |'3' ->  error "%a Dynamic array \
+                        not allocated" print_position (position_point pos)
+        | '2' -> error "%a Dynamic element \
+                        not allocated" print_position (position_point pos) 
+        | _ ->
+          (error "%a unknown identifier %a (first occurrence)" print_position (position_point pos)
+             pretty_id id)
       in
       (* put it in, so we don't see more errors *)
       H.add !tab id (no_entry id);
-      
+
       raise Exit
   else
     lookup ()
 
 let newVariable id typ llv err pos =
   if typ<>TYPE_none then 
-   !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
+    !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
   let inf = {
     variable_type = typ;
     variable_offset = !currentScope.sco_negofs
@@ -195,14 +189,14 @@ let newFunction id llv err pos =
     let e = lookupEntry id LOOKUP_CURRENT_SCOPE false pos in
     match e.entry_info with
     | ENTRY_function inf when inf.function_isForward ->
-        inf.function_isForward <- false;
-        inf.function_pstatus <- PARDEF_CHECK;
-        inf.function_redeflist <- inf.function_paramlist;
-        e
+      inf.function_isForward <- false;
+      inf.function_pstatus <- PARDEF_CHECK;
+      inf.function_redeflist <- inf.function_paramlist;
+      e
     | _ ->
-        if err then
-          error "duplicate identifier: %a" pretty_id id;
-          raise Exit
+      if err then
+        error "duplicate identifier: %a" pretty_id id;
+      raise Exit
   with Not_found ->
     let inf = {
       function_isForward = false;
@@ -216,108 +210,82 @@ let newFunction id llv err pos =
     newEntry id (ENTRY_function inf) llv false pos
 
 let newParameter id typ mode f llv err pos =
-  (* Very important  when status PARDEF_CHECK syncs offset *)
-  (* when status PARDEF_DEFINE sets right offset *)
+  (* Very important  when status is PARDEF_CHECK syncs offset *)
+  (* and when status is PARDEF_DEFINE sets right offset *)
   !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
   match f.entry_info with
   | ENTRY_function inf -> begin
       match inf.function_pstatus with
       | PARDEF_DEFINE ->
-          let inf_p = {
-            parameter_type = typ;
-            parameter_offset =  !currentScope.sco_negofs ;
-            parameter_mode = mode
-          } in
-          let e = newEntry id (ENTRY_parameter inf_p) llv err pos in
-          inf.function_paramlist <- e :: inf.function_paramlist;
-          e
+        let inf_p = {
+          parameter_type = typ;
+          parameter_offset =  !currentScope.sco_negofs ;
+          parameter_mode = mode
+        } in
+        let e = newEntry id (ENTRY_parameter inf_p) llv err pos in
+        inf.function_paramlist <- e :: inf.function_paramlist;
+        e
       | PARDEF_CHECK -> begin
           match inf.function_redeflist with
           | p :: ps -> begin
               inf.function_redeflist <- ps;
               match p.entry_info with
               | ENTRY_parameter inf ->
-                  if not (equalType inf.parameter_type typ) then
-                    error "Parameter type mismatch in redeclaration \
-                           of function %a" pretty_id f.entry_id
-                  else if inf.parameter_mode != mode then
-                    error "Parameter passing mode mismatch in redeclaration \
-                           of function %a" pretty_id f.entry_id
-                  else if p.entry_id != id then
-                    error "Parameter name mismatch in redeclaration \
-                           of function %a" pretty_id f.entry_id
-                  else
-                    H.add !tab id p;
-                  p
+                if not (equalType inf.parameter_type typ) then
+                  error "Parameter type mismatch in redeclaration \
+                         of function %a" pretty_id f.entry_id
+                else if inf.parameter_mode != mode then
+                  error "Parameter passing mode mismatch in redeclaration \
+                         of function %a" pretty_id f.entry_id
+                else if p.entry_id != id then
+                  error "Parameter name mismatch in redeclaration \
+                         of function %a" pretty_id f.entry_id
+                else
+                  H.add !tab id p;
+                p
               | _ ->
-                  internal "I found a parameter that is not a parameter!";
-                  raise Exit
+                internal "I found a parameter that is not a parameter!";
+                raise Exit
             end
           | [] ->
-              error "More parameters than expected in redeclaration \
-                     of function %a" pretty_id f.entry_id;
-              raise Exit
+            error "More parameters than expected in redeclaration \
+                   of function %a" pretty_id f.entry_id;
+            raise Exit
         end
       | PARDEF_COMPLETE ->
-          internal "Cannot add a parameter to an already defined function";
-          raise Exit
+        internal "Cannot add a parameter to an already defined function";
+        raise Exit
     end
   | _ ->
-      internal "Cannot add a parameter to a non-function";
-      raise Exit
-
-(* let newTemporary typ llv pos=
-  let id = id_make ("$" ^ string_of_int !tempNumber) in
-  !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
-  let inf = {
-    temporary_type = typ;
-    temporary_offset = !currentScope.sco_negofs
-  } in
-  incr tempNumber;
-  newEntry id (ENTRY_temporary inf) llv false pos *)
+    internal "Cannot add a parameter to a non-function";
+    raise Exit
 
 let forwardFunction e =
   match e.entry_info with
   | ENTRY_function inf ->
-      inf.function_isForward <- true
+    inf.function_isForward <- true
   | _ ->
-      internal "Cannot make a non-function forward"
+    internal "Cannot make a non-function forward"
 
 let endFunctionHeader e typ =
   match e.entry_info with
   | ENTRY_function inf ->
-      begin
-        match inf.function_pstatus with
-        | PARDEF_COMPLETE ->
-            internal "Cannot end parameters in an already defined function"
-        | PARDEF_DEFINE ->
-       
-            inf.function_result <- typ;
-           
-            (* let offset = ref start_positive_offset in*)
-            (* let fix_offset e =
-              match e.entry_info with
-              | ENTRY_parameter inf ->
-              !currentScope.sco_negofs <- !currentScope.sco_negofs - sizeOfType typ;
-                  (* inf.parameter_offset <- !offset; *)
-                  inf.parameter_offset <- !currentScope.sco_negofs;
-                  (* let size =
-                    match inf.parameter_mode with
-                    | PASS_BY_VALUE     ->0(*) sizeOfType inf.parameter_type*)
-                    | PASS_BY_REFERENCE -> 0 in
-                  offset := !offset + size *)
-              | _ ->
-                  internal "Cannot fix offset to a non parameter" in
-            List.iter fix_offset inf.function_paramlist; *)
-            inf.function_paramlist <- List.rev inf.function_paramlist 
-        | PARDEF_CHECK ->
-            if inf.function_redeflist <> [] then
-              error "Fewer parameters than expected in redeclaration \
-                     of function %a" pretty_id e.entry_id;
-            if not (equalType inf.function_result typ) then
-              error "Result type mismatch in redeclaration of function %a"
-                    pretty_id e.entry_id;
-      end;
-      inf.function_pstatus <- PARDEF_COMPLETE
+    begin
+      match inf.function_pstatus with
+      | PARDEF_COMPLETE ->
+        internal "Cannot end parameters in an already defined function"
+      | PARDEF_DEFINE ->
+
+        inf.function_result <- typ;
+        inf.function_paramlist <- List.rev inf.function_paramlist 
+      | PARDEF_CHECK ->
+        if inf.function_redeflist <> [] then
+          error "Fewer parameters than expected in redeclaration \
+                 of function %a" pretty_id e.entry_id;
+        if not (equalType inf.function_result typ) then
+          error "Result type mismatch in redeclaration of function %a"
+            pretty_id e.entry_id;
+    end;
+    inf.function_pstatus <- PARDEF_COMPLETE
   | _ ->
-      internal "Cannot end parameters in a non-function"
+    internal "Cannot end parameters in a non-function"
