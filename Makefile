@@ -15,6 +15,7 @@ PACKAGES=llvm,llvm.analysis,str,llvm.target,llvm.scalar_opts,llvm.all_backends,c
 $(EXEFILE):
 	ocamlbuild -use-ocamlfind -use-menhir -pkgs $(PACKAGES) src/Main.byte
 	cp Main.byte $(EXEFILE)
+	rm Main.byte
 
 clean:
 	ocamlbuild -clean
