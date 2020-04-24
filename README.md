@@ -5,13 +5,14 @@ See implementation report in PCL.pdf in greek.
 
 ## Build Compiler
 ### Prerequisites
-* OCaml 4.02.3 (tested version)
-* ocamlbuild (tested in 0 version)
-* [ocamlfind](https://opam.ocaml.org/packages/ocamlfind/) (tested in 1.8.1)
-* [menhir] (https://opam.ocaml.org/packages/menhir/menhir.20190924/) (tested in 20190924)
-* llvm ([LLVM 9.0.1](https://releases.llvm.org/download.html) , OCaml [Llvm](https://opam.ocaml.org/packages/llvm/llvm.9.0.0/) package version 9.0.0)
-* [cmdliner](https://opam.ocaml.org/packages/cmdliner/cmdliner.1.0.2/) (OCaml package tested in  1.0.2)
+* [OCaml 4.02.3](https://ocaml.org/releases/4.02.html)
+* [ocamlbuild](https://opam.ocaml.org/packages/ocamlbuild/ocamlbuild.0/)
+* [ocamlfind](https://opam.ocaml.org/packages/ocamlfind/ocamlfind.1.8.1/) 
+* [menhir](https://opam.ocaml.org/packages/menhir/menhir.20190924/) 
+* llvm ([LLVM 9.0.1](https://releases.llvm.org/download.html) , OCaml [llvm 9.0.0](https://opam.ocaml.org/packages/llvm/llvm.9.0.0/) )
+* [cmdliner](https://opam.ocaml.org/packages/cmdliner/cmdliner.1.0.2/) 
 
+The versions mentioned in the links above are the ones used in project development and the ones tested.
 Once all packages needed in Makefile are installed (installation via [opam](https://opam.ocaml.org/) recommended),
 produce the compiler executable simply by cloning the project and running make. 
 
@@ -24,7 +25,7 @@ cd edsger_lib
 ```
 A `lib.a` file is created and will be required later.
 
-## Run
+## Run Compiler
 The compiler executable is named `pclc`. Run with file input :
 ```
 ./pclc path/to/program.pcl
@@ -40,11 +41,11 @@ To produce final executable edit `link.sh` CLANG variable if needed (versions 8.
 ```
 ./link.sh path/to/program
 ```
-The executable path/to/program will be created. Alternatively run :
+If `path/to/program.asm` exists the executable path/to/program will be created. Alternatively run :
 ```
 clang-9 path/to/program.asm edsger_lib/lib.a -o executable_name
 ```
-to create the excutable and run it :
+to create the executable and run it :
 ```
 ./executable_name
 ```
