@@ -53,11 +53,12 @@ let print_final src file opt =
     exit 1
 
 let path_of src = 
-  let valid =  Str.regexp ".*\.pcl" in 
-  match Str.string_match valid src 0 with 
-  | true -> List.hd (split (regexp "\.pcl") src)
-  | _ -> (error "Invalid File Format\n%s\n" src; exit 1)
-
+  try
+    let path = Filename.chop_extension src in
+    path
+  with Invalid_argument _ ->
+    src
+  
 let compile prompt optimize src =
   match prompt with 
   | From_file ->

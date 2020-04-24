@@ -43,7 +43,7 @@ To produce final executable edit `link.sh` CLANG variable if needed (versions 8.
 ```
 If `path/to/program.asm` exists the executable path/to/program will be created. Alternatively run :
 ```
-clang-9 path/to/program.asm edsger_lib/lib.a -o executable_name
+clang-9 path/to/program.asm path/to/edsger_lib/lib.a -o executable_name
 ```
 to create the executable and run it :
 ```

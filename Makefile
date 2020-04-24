@@ -9,7 +9,7 @@ endif
 
 EXEFILE=pclc$(EXE)
 PACKAGES=llvm,llvm.analysis,str,llvm.target,llvm.scalar_opts,llvm.all_backends,cmdliner
-# opam install ctypes foreign for opts
+# opam install ctypes-foreign may be required
 
 
 $(EXEFILE):
