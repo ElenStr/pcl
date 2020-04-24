@@ -2,8 +2,6 @@
 	open Ast
 	open Types
 	open Symbol
-
-	
 %}
 %token T_eof
 %token <Ast.name> T_name
@@ -165,4 +163,3 @@ expr_list : {[]}
 unop_expr  : T_not expr {Unary(U_not,$2)}					
 			| T_plus expr %prec Un_plus {Unary(U_plus,$2)}
 			| T_minus expr %prec Un_minus {Unary(U_minus,$2)}
-

@@ -14,11 +14,12 @@ let compile_proto id t params =
   let proper_lib_type tt = 
     match tt with 
     | TYPE_array(TYPE_char,None) -> llvm_type (TYPE_ptr(TYPE_array(TYPE_char,None)))
-    |_ ->  llvm_type tt
+    | _ ->  llvm_type tt
   in
   match (lookup_function id the_module) with
   | Some(f) -> f
-  | _ ->begin 
+  | _ -> 
+    begin 
       let params_types_t = List.map (fun param -> 
           let t = param_type param in 
           let ids  = param_ids param in

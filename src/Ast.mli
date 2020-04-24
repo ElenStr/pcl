@@ -1,6 +1,5 @@
 type name  = string
 
-
 type un_op = U_plus | U_minus | U_not
 type num_op  = O_plus | O_minus | O_times | O_division |O_div | O_mod
 type eq_op  = O_eq | O_neq 
@@ -8,11 +7,10 @@ type cmp_op = O_gt | O_lt | O_geq | O_leq
 type logic_op = O_and | O_or
 
 type bin_op  = 
-  |Num_op of num_op
-  |Eq_op of eq_op
-  |Cmp_op of cmp_op
-  |Logic_op of logic_op
-
+  | Num_op of num_op
+  | Eq_op of eq_op
+  | Cmp_op of cmp_op
+  | Logic_op of logic_op
 
 type const = INT of int|REAL of float |BOOL of bool |NIL|CHAR of string
 
@@ -23,7 +21,7 @@ type ast_decl =
   | D_header of name * Types.typ * ast_decl list * Lexing.position
   | D_fun of ast_decl * (ast_decl list * ast_stmt)
 
-  and  ast_stmt =
+and  ast_stmt =
   | S_block of ast_stmt list
   | S_assign of l_value * ast_expr * Lexing.position * Lexing.position
   | S_if of ast_expr * ast_stmt * ast_stmt option
@@ -44,13 +42,13 @@ and l_value =
   | Array_element of l_value * ast_expr
   | Deref of ast_expr
   | Res
+
 and op_expr = 
-  |At of ast_expr
-  |Unary of un_op * ast_expr
-  |Binary of ast_expr * bin_op * ast_expr
+  | At of ast_expr
+  | Unary of un_op * ast_expr
+  | Binary of ast_expr * bin_op * ast_expr
 
-
-  and ast_expr =
+and ast_expr =
   | Lval of l_value * Lexing.position
   | Const of const
   | Rval of op_expr * Lexing.position

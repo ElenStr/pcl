@@ -168,9 +168,6 @@ let lookupEntry id how err pos =
           (error "%a unknown identifier %a (first occurrence)" print_position (position_point pos)
              pretty_id id)
       in
-      (* put it in, so we don't see more errors *)
-      H.add !tab id (no_entry id);
-
       raise Exit
   else
     lookup ()

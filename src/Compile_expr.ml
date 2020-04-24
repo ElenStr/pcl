@@ -152,7 +152,7 @@ and compile_logic_op op e1 e2 =
   let (el_b,mer_b) = compile_if_then ~compile_cond:false ~casted_cond:lv1_casted e1 in
 
   match op with 
-  |O_and  -> 
+  | O_and  -> 
     begin
       let and_b = build_and lv1_casted lv2_casted "andtmp" builder in
       let ret_val = (build_intcast and_b (i1_type context) "andcast" builder) in
@@ -210,7 +210,7 @@ and compile_expr e =
       let cur_s = !currentScope.sco_nesting in
 
       match lookup_function fun_name the_module with
-      |Some fn -> 
+      | Some fn -> 
         let cast_to_iarray par = 
           let ptr = get_ptr par in
           let dt = ptr |> type_of |> element_type |> element_type in

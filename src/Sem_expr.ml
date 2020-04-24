@@ -34,27 +34,24 @@ let rec  sem_lvalue lv pos =
       match ((sem_lvalue l pos),( sem_expr e)) with
       | (TYPE_array(t,Some(n)),TYPE_int) when check_bounds n e -> t
       | (TYPE_array(t,Some(n)),TYPE_int) -> (error "%a Index out \
-      of bound" print_position (position_point pos); raise Exit)
-
+          of bound" print_position (position_point pos); raise Exit)
       | (TYPE_array(t,_),TYPE_int) -> t
-
       | _ -> (error "%a Invalid array \
-                     expression " print_position (position_point pos); raise Exit)
-
+          expression " print_position (position_point pos); raise Exit)
     end
   | Deref e -> 
     begin
       match (sem_expr e) with 
       | TYPE_ptr TYPE_none -> (error "%a Expression must not be nil"
-                                 print_position (position_point pos); raise Exit)
+                    print_position (position_point pos); raise Exit)
       | TYPE_ptr t -> t
       | _ -> (error "%a Expression must be of type pointer \
-                     %s" print_position (position_point pos) (expr_to_string e); raise Exit)
+          %s" print_position (position_point pos) (expr_to_string e); raise Exit)
     end
   | Res -> 
     begin
       match (lookupEntry (id_make "result") LOOKUP_ALL_SCOPES true pos).entry_info with
-      |ENTRY_variable inf -> inf.variable_type
+      | ENTRY_variable inf -> inf.variable_type
       | _ -> (error "Result not found";raise Exit ) (*unreached*)
     end
 
@@ -108,10 +105,10 @@ and logic_op_expr op e1 e2 pos =
 
 and bin_op_expr op e1 e2 pos =
   match op with 
-  |Num_op  num_o -> num_op_expr num_o e1 e2 pos
-  |Eq_op  eq_o -> eq_op_expr eq_o e1 e2 pos
-  |Cmp_op  cmp_o -> cmp_op_expr cmp_o e1 e2 pos
-  |Logic_op  logic_o -> logic_op_expr logic_o e1 e2 pos
+  | Num_op  num_o -> num_op_expr num_o e1 e2 pos
+  | Eq_op  eq_o -> eq_op_expr eq_o e1 e2 pos
+  | Cmp_op  cmp_o -> cmp_op_expr cmp_o e1 e2 pos
+  | Logic_op  logic_o -> logic_op_expr logic_o e1 e2 pos
 
 
 and sem_op_expr op_e pos =
@@ -135,7 +132,6 @@ and sem_expr e =
   | E_call (id, params,pos) -> 
     begin 
       let fn = (lookupEntry (id_make id) LOOKUP_ALL_SCOPES true pos).entry_info in
-    
       match fn with 
       | ENTRY_function fun_inf when (check_params fun_inf.function_paramlist params pos)-> fun_inf.function_result
       | _ -> (error "%a %s is not a function " print_position (position_point pos) id; raise Exit)
@@ -149,10 +145,10 @@ and check_params formal actual pos =
           | ENTRY_parameter par_inf -> 
             begin
               match par_inf.parameter_mode with
-              |PASS_BY_VALUE when 
+              | PASS_BY_VALUE when 
                   not(is_assignement_compatible par_inf.parameter_type (sem_expr a)) -> 
                 (error "%a Invalid parameter" print_position (position_point pos);raise Invalid)
-              |PASS_BY_REFERENCE -> 
+              | PASS_BY_REFERENCE -> 
                 begin
                   match a with 
                   | Lval (lv,_) when 

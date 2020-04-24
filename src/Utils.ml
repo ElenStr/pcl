@@ -38,9 +38,9 @@ let lib = [
 let str_to_char s = 
   let s = if s.[0]== '\'' then s else "\'"^s^"\'" in
   match  s with  "\'\\0\'" -> '\000' | "\'\\n\'" -> '\n'
-               | "\'\\r\'" -> '\r' | "\'\\t\'" -> '\t' | "\'\\\\\'" -> '\\' | "\'\\\'\'" -> '\''
-               | "\'\\\"\'" -> '\"' | " " -> ' '
-               | _ -> (Str.global_replace (Str.regexp "\'") "" s).[0]
+  | "\'\\r\'" -> '\r' | "\'\\t\'" -> '\t' | "\'\\\\\'" -> '\\' | "\'\\\'\'" -> '\''
+  | "\'\\\"\'" -> '\"' | " " -> ' '
+  | _ -> (Str.global_replace (Str.regexp "\'") "" s).[0]
 
 let rec flatten str_c out_str = 
   let new_char = str_to_char (String.sub str_c 0 2) in 
@@ -114,10 +114,9 @@ let printSymbolTable () =
           | ENTRY_variable inf ->
             if show_offsets then
               fprintf ppf "[%d]" inf.variable_offset
-          | ENTRY_parameter inf ->
+          | ENTRY_parameter inf -> (* prints also labels but with zero size*)
             if show_offsets then
               fprintf ppf "[%d]" inf.parameter_offset;
-
           | ENTRY_function inf ->
             begin
               let param ppf e =
@@ -167,7 +166,6 @@ let printSymbolTable () =
     scope !currentScope
 
 
-
 let checkSymbolTable () = 
   let rec walk scp =
     if scp.sco_nesting <> 0 then
@@ -182,7 +180,6 @@ let checkSymbolTable () =
                                  %s" id_str;
                           raise Exit)
               | _ -> ()          
-
             end
           | ENTRY_function inf ->
             if inf.function_isForward && not (List.exists (fun hd -> begin 
@@ -193,7 +190,6 @@ let checkSymbolTable () =
               (error "Undefined function: %a" pretty_id e.entry_id;
                raise Exit)
             else   () 
-
           | _ -> ()
 
         in
@@ -206,9 +202,8 @@ let checkSymbolTable () =
           | [] ->
             () in
 
-
         entries scp.sco_entries;
-
+        
       end in
   let scope scp =
     if scp.sco_nesting == 0 then
